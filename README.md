@@ -11,17 +11,18 @@ In addition to the GA Survey model of Surveys' metadata, the Linked Data API als
 
 
 ##### Provenance Modelling
-We model the Surveys as Activity class objects according to PROV-O, the provenance ontology. We then model the data from the Surveys as PROV-O Entities, thus the relationship between Entities and Surveys is a normal PROV-O Activity <--> Entity relationship, one of *wasGeneratedBy*, i.e.:
+We model the Surveys as *Activity* class objects according to PROV-O, the provenance ontology. This is because they are temporal events that have a start and end time and are associated with some, or several causal agents, like people and system. We then model data from the Surveys as a PROV-O *Entity*, thus the relationship between Entities and Surveys is a normal PROV-O Activity <--> Entity relationship, one of *wasGeneratedBy*, i.e.:
  
- > Entity X *wasGeneratedBy* Survey Y
+ > Entity-X *wasGeneratedBy* Survey-Y
  
 The inverse of this is:
 
-> Survey Y *generated* Entity X
+> Survey-Y *generated* Entity-X
+
 
 
 ## About this code repository
-This code repository is developed and maintained by [Geoscience Australia](http://www.ga.gov.au) (GA). It is licensed as Creative Commons 4.0 Internationals (see LICENSE). 
+This code repository is developed and maintained by [Geoscience Australia](http://www.ga.gov.au) (GA). It is licensed using Creative Commons 4.0 International (see LICENSE file). 
 
 
 ### Authors and Contact
@@ -32,4 +33,3 @@ Geoscience Australia
 **Alex Ip**  
 Geoscience Australia  
 <alex.ip@ga.gov.au>  
-
