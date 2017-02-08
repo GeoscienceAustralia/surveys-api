@@ -45,9 +45,9 @@ def sample(igsn):
                 request.args.get('_format')
             )
         else:
-            from model.sample import Sample
+            from model.survey import Survey
             try:
-                s = Sample(settings.XML_API_URL_SAMPLE, igsn)
+                s = Survey(settings.XML_API_URL_SAMPLE, igsn)
                 return s.render(view, mimetype)
             except ValueError:
                 return render_template('no_record_sample.html')

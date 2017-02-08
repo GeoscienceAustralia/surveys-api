@@ -4,7 +4,7 @@ PORT = 8080
 DEBUG = True
 
 XML_API_URL_SURVEY_REGISTER = ''
-XML_API_URL_SURVEY = ''
+XML_API_URL_SURVEY = 'http://www.ga.gov.au/www/argus.argus_api.survey?pSurveyNo={}'
 
 BASE_URI_SAMPLE = 'http://pid.geoscience.gov.au/survey/'
 
