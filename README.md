@@ -25,7 +25,7 @@ PROV-O gives us three basic classes which Everything falls in to. Figure 1 shows
 Figure 1: The basic PROV-O classes and their relationships 
 
 #### Survey Modelling
-We model a Survey as a temporal event which, according to PROV-O, means it is a type of *Activity*.
+We model a Survey as a temporal event which, according to PROV-O, means it is a type of *Activity*. As an *Activity*, a Survey will have access to all legal *Activity* properties, such as *startedAtTime* and *endedAtTime*, *atLocation*. See [Activity in PROV-O](https://www.w3.org/TR/prov-o/#Activity) for others. 
 
 In addition to just modelling a Survey class, we model sub-classes of Survey being a Public Survey which is a Survey that GA delivers publicly. Likely a Public Survey is a Survey with some metadata removed which aligns with the GAPD where we have classes like Dataset and then Public Dataset, see Figure 2. 
 
@@ -36,6 +36,8 @@ Subclasses of Public Survey are then Airborne Survey, Shipborne Survey and possi
 
 ![Figure 3](static/img/Survey-Type.png)  
 Figure 3: The Survey class and subclasses and it's relationship to PROV-O 
+
+Airborne-only properties, such as height above ground, will only be legal for Airborne Survey and likewise for other sorts.
 
 #### Survey <--> Dataset
 As a subclass of PROV-O's *Activity*, Surveys are related to Datasets, which are a subclass of PROV *Entity* via:
