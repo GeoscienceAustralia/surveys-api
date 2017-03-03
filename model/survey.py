@@ -1,13 +1,13 @@
 from lxml import etree
+from lxml import objectify
 from rdflib import Graph, URIRef, RDF, XSD, Namespace, Literal, BNode
-from io import StringIO
 import requests
 from datetime import datetime
 from ldapi.ldapi import LDAPI
 from flask import Response, render_template
 
 
-class Survey:
+class SurveyRenderer:
     """
     This class represents a Survey and methods in this class allow one to be loaded from GA's internal Oracle
     ARGUS database and to be exported in a number of formats including RDF, according to the 'GA Public Data Ontology'
@@ -20,59 +20,51 @@ class Survey:
 
     def __init__(self, oracle_api_survey_url, survey_id):
         self.oracle_api_survey_url = oracle_api_survey_url
+
         self.survey_id = survey_id
-        self.sampleid = None
-        self.sample_type = None
-        self.method_type = None
-        self.material_type = None
-        self.long_min = None
-        self.long_max = None
-        self.lat_min = None
-        self.lat_max = None
-        self.gtype = None
-        self.srid = None
-        self.x = None
-        self.y = None
-        self.z = None
-        self.elem_info = None
-        self.ordinates = None
+        self.survey_name = None
         self.state = None
-        self.country = None
-        self.depth_top = None
-        self.depth_base = None
-        self.strath = None
-        self.age = None
-        self.remark = None
-        self.lith = None
-        self.date_acquired = None
-        self.entity_uri = None
-        self.entity_name = None
-        self.entity_type = None
-        self.hole_long_min = None
-        self.hole_long_max = None
-        self.hole_lat_min = None
-        self.hole_lat_max = None
-        self.date_load = None
-        self.date_modified = None
-        self.sample_no = None
+        self.operator = None
+        self.contractor = None
+        self.processor = None
+        self.survey_type = None
+        self.data_types = None
+        self.vessel = None
+        self.vessel_type = None
+        self.release_date = None
+        self.onshore_offshore = None
+        self.start_date = None
+        self.end_date = None
+        self.w_long = None
+        self.e_long = None
+        self.s_lat = None
+        self.n_lat = None
+        self.line_km = None
+        self.total_km = None
+        self.line_spacing = None
+        self.line_direction = None
+        self.tie_spacing = None
+        self.square_km = None
+        self.crystal_volume = None
+        self.up_crystal_volume = None
+        self.digital_data = None
+        self.geodetic_datum = None
+        self.asl = None
+        self.agl = None
+        self.mag_instrument = None
+        self.rad_instrument = None
+
+        self.srid = 8311  # TODO: replace this magic number with a value from the DB
 
         # populate all instance variables from API
         # TODO: lazy load this, i.e. only populate if a view that need populating is loaded which is every view except for Alternates
         self._populate_from_oracle_api()
 
     def render(self, view, mimetype):
-        if mimetype in LDAPI.get_rdf_mimetypes_list():
-            return Response(self.export_as_rdf(view, mimetype), mimetype=mimetype)
-
         if view == 'gapd':
-            # RDF formats handled by general case
-            # HTML is the only other enabled format for igsn view
             return self.export_as_html(model_view=view)
         elif view == 'prov':
-            # RDF formats handled by general case
-            # only RDF for this view so set the mimetype to our favourite mime format
-            mimetype = 'text/turtle'
-            return Response(self.export_as_rdf('prov', mimetype), mimetype=mimetype)
+            return Response(self.export_as_rdf('prov', 'text/turtle'), mimetype=mimetype)
 
     def validate_xml(self, xml):
         parser = etree.XMLParser(dtd_validation=False)
@@ -93,13 +85,13 @@ class Survey:
         # call API
         r = requests.get(self.oracle_api_survey_url.format(self.survey_id))
         # deal with missing XML declaration
-        if "No data" in r.content:
+        if "No data" in r.text:
             raise ParameterError('No Data')
 
-        xml = r.content
+        xml = r.text
 
         if self.validate_xml(xml):
-            self._populate_from_xml_file(StringIO(xml))
+            self._populate_from_xml_file(xml)
             return True
         else:
             return False
@@ -111,165 +103,87 @@ class Survey:
         :param xml: XML according to GA's Oracle XML API from the Samples DB
         :return: None
         """
-        # iterate through the elements in the XML element tree and handle each
-        for event, elem in etree.iterparse(xml):
-            '''
-            <ROWSET>
-             <ROW>
-              <SURVEYID>368</SURVEYID>
-              <SURVEYNAME>Swain Reefs (Townsville), QLD, 1969</SURVEYNAME>
-              <STATE>QLD</STATE>
-              <OPERATOR>Aust Gulf Oil Co</OPERATOR>
-              <CONTRACTOR>Aero Service</CONTRACTOR>
-              <PROCESSOR/>
-              <SURVEY_TYPE>Regional</SURVEY_TYPE>
-              <DATATYPES>MAG</DATATYPES>
-              <VESSEL/>
-              <VESSEL_TYPE>Plane</VESSEL_TYPE>
-              <RELEASEDATE/>
-              <ONSHORE_OFFSHORE>Offshore</ONSHORE_OFFSHORE>
-              <STARTDATE>06-MAR-69</STARTDATE>
-              <ENDDATE>19-MAR-69</ENDDATE>
-              <WLONG>146</WLONG>
-              <ELONG>150.5</ELONG>
-              <SLAT>-21</SLAT>
-              <NLAT>-16.85</NLAT>
-              <LINE_KM/>
-              <TOTAL_KM>11878</TOTAL_KM>
-              <LINE_SPACING>4000</LINE_SPACING>
-              <LINE_DIRECTION>45</LINE_DIRECTION>
-              <TIE_SPACING>20000</TIE_SPACING>
-              <SQUARE_KM>25958</SQUARE_KM>
-              <CRYSTAL_VOLUME/>
-              <UP_CRYSTAL_VOLUME/>
-              <DIGITAL_DATA>MAG</DIGITAL_DATA>
-              <GEODETIC_DATUM/>
-              <ASL>600</ASL>
-              <AGL>150</AGL>
-              <MAG_INSTRUMENT/>
-              <RAD_INSTRUMENT/>
-             </ROW>
-            </ROWSET>
-            '''
-            if elem.tag == "IGSN":
-                self.survey_id = elem.text
-            elif elem.tag == "SAMPLEID":
-                self.sampleid = elem.text
-            elif elem.tag == "SAMPLE_TYPE_NEW":
-                if elem.text is not None:
-                    self.sample_type = TERM_LOOKUP['sample_type'].get(elem.text)
-                    if self.sample_type is None:
-                        self.sample_type = Survey.URI_MISSSING
-            elif elem.tag == "SAMPLING_METHOD":
-                if elem.text is not None:
-                    self.method_type = TERM_LOOKUP['method_type'].get(elem.text)
-                    if self.method_type is None:
-                        self.method_type = Survey.URI_MISSSING
-            elif elem.tag == "MATERIAL_CLASS":
-                if elem.text is not None:
-                    self.material_type = TERM_LOOKUP['material_type'].get(elem.text)
-                    if self.material_type is None:
-                        self.material_type = Survey.URI_MISSSING
-            elif elem.tag == "SAMPLE_MIN_LONGITUDE":
-                if elem.text is not None:
-                    self.long_min = elem.text
-            elif elem.tag == "SAMPLE_MAX_LONGITUDE":
-                if elem.text is not None:
-                    self.long_max = elem.text
-            elif elem.tag == "SAMPLE_MIN_LATITUDE":
-                if elem.text is not None:
-                    self.lat_min = elem.text
-            elif elem.tag == "SAMPLE_MAX_LATITUDE":
-                if elem.text is not None:
-                    self.lat_max = elem.text
-            elif elem.tag == "SDO_GTYPE":
-                if elem.text is not None:
-                    self.gtype = elem.text
-            elif elem.tag == "SDO_SRID":
-                if elem.text is not None:
-                    self.srid = elem.text
-            elif elem.tag == "X":
-                if elem.text is not None:
-                    self.x = elem.text
-            elif elem.tag == "Y":
-                if elem.text is not None:
-                    self.y = elem.text
-            elif elem.tag == "Z":
-                if elem.text is not None:
-                    self.z = elem.text
-            elif elem.tag == "SDO_ELEM_INFO":
-                if elem.text is not None:
-                    self.elem_info = elem.text
-            elif elem.tag == "SDO_ORDINATES":
-                if elem.text is not None:
-                    self.ordinates = elem.text
-            elif elem.tag == "STATEID":
-                if elem.text is not None:
-                    self.state = TERM_LOOKUP['state'].get(elem.text)
-                    if self.state is None:
-                        self.state = Survey.URI_MISSSING
-            elif elem.tag == "COUNTRY":
-                if elem.text is not None:
-                    self.country = TERM_LOOKUP['country'].get(elem.text)
-                    if self.country is None:
-                        self.country = Survey.URI_MISSSING
-            elif elem.tag == "TOP_DEPTH":
-                if elem.text is not None:
-                    self.depth_top = elem.text
-            elif elem.tag == "BASE_DEPTH":
-                if elem.text is not None:
-                    self.depth_base = elem.text
-            elif elem.tag == "STRATNAME":
-                if elem.text is not None:
-                    self.strath = elem.text
-            elif elem.tag == "AGE":
-                if elem.text is not None:
-                    self.age = elem.text
-            elif elem.tag == "REMARK":
-                if elem.text:
-                    self.remark = elem.text
-            elif elem.tag == "LITHNAME":
-                if elem.text is not None:
-                    self.lith = TERM_LOOKUP['lith'].get(elem.text)
-                    if self.lith is None:
-                        self.lith = Survey.URI_MISSSING
-            elif elem.tag == "ACQUIREDATE":
-                if elem.text is not None:
-                    self.date_acquired = datetime.strptime(elem.text, '%Y-%m-%d %H:%M:%S')
-            elif elem.tag == "ENO":
-                if elem.text is not None:
-                    self.entity_uri = 'http://pid.geoscience.gov.au/site/' + elem.text
-            elif elem.tag == "ENTITYID":
-                if elem.text is not None:
-                    self.entity_name = elem.text
-            elif elem.tag == "ENTITY_TYPE":
-                if elem.text is not None:
-                    self.entity_type = elem.text
-            elif elem.tag == "HOLE_MIN_LONGITUDE":
-                if elem.text is not None:
-                    self.hole_long_min = elem.text
-            elif elem.tag == "HOLE_MAX_LONGITUDE":
-                if elem.text is not None:
-                    self.hole_long_max = elem.text
-            elif elem.tag == "HOLE_MIN_LATITUDE":
-                if elem.text is not None:
-                    self.hole_lat_min = elem.text
-            elif elem.tag == "HOLE_MAX_LATITUDE":
-                if elem.text is not None:
-                    self.hole_lat_max = elem.text
-            elif elem.tag == "LOADEDDATE":
-                if elem.text is not None:
-                    self.date_load = datetime.strptime(elem.text, '%Y-%m-%d %H:%M:%S')
-            elif elem.tag == "MODIFIED_DATE":
-                if elem.text is not None:
-                    self.date_modified = datetime.strptime(elem.text, '%Y-%m-%d %H:%M:%S')
-            elif elem.tag == "SAMPLENO":
-                if elem.text is not None:
-                    self.sample_no = elem.text
+        # turn the XML doc into a Python object
+        root = objectify.fromstring(xml)
 
-        return True
+        self.survey_name = root.ROW.SURVEYNAME
+        self.state = root.ROW.SURVEYNAME
+        self.operator = root.ROW.SURVEYNAME
+        self.contractor = root.ROW.SURVEYNAME
+        self.processor = root.ROW.SURVEYNAME
+        self.survey_type = root.ROW.SURVEYNAME
+        self.data_types = root.ROW.SURVEYNAME
+        self.vessel = root.ROW.SURVEYNAME
+        self.vessel_type = root.ROW.SURVEYNAME
+        self.release_date = root.ROW.SURVEYNAME
+        self.onshore_offshore = root.ROW.SURVEYNAME
+        self.start_date = root.ROW.SURVEYNAME
+        self.end_date = root.ROW.SURVEYNAME
+        self.w_long = root.ROW.SURVEYNAME
+        self.e_long = root.ROW.SURVEYNAME
+        self.s_lat = root.ROW.SURVEYNAME
+        self.n_lat = root.ROW.SURVEYNAME
+        self.line_km = root.ROW.SURVEYNAME
+        self.total_km = root.ROW.SURVEYNAME
+        self.line_spacing = root.ROW.SURVEYNAME
+        self.line_direction = root.ROW.SURVEYNAME
+        self.tie_spacing = root.ROW.SURVEYNAME
+        self.square_km = root.ROW.SURVEYNAME
+        self.crystal_volume = root.ROW.SURVEYNAME
+        self.up_crystal_volume = root.ROW.SURVEYNAME
+        self.digital_data = root.ROW.SURVEYNAME
+        self.geodetic_datum = root.ROW.SURVEYNAME
+        self.asl = root.ROW.SURVEYNAME
+        self.agl = root.ROW.SURVEYNAME
+        self.mag_instrument = root.ROW.SURVEYNAME
+        self.rad_instrument = root.ROW.SURVEYNAME
 
-    def _generate_sample_wkt(self):
+        '''
+        <?xml version="1.0" ?>
+        <ROWSET>
+            <ROW>
+                <SURVEYID>921</SURVEYID>
+                <SURVEYNAME>Goomalling, WA, 1996</SURVEYNAME>
+                <STATE>WA</STATE>
+                <OPERATOR>Stockdale Prospecting Ltd.</OPERATOR>
+                <CONTRACTOR>Kevron Geophysics Pty Ltd</CONTRACTOR>
+                <PROCESSOR>Kevron Geophysics Pty Ltd</PROCESSOR>
+                <SURVEY_TYPE>Detailed</SURVEY_TYPE>
+                <DATATYPES>MAG,RAL,ELE</DATATYPES>
+                <VESSEL>Aero Commander</VESSEL>
+                <VESSEL_TYPE>Plane</VESSEL_TYPE>
+                <RELEASEDATE/>
+                <ONSHORE_OFFSHORE>Onshore</ONSHORE_OFFSHORE>
+                <STARTDATE>05-DEC-96</STARTDATE>
+                <ENDDATE>22-DEC-96</ENDDATE>
+                <WLONG>116.366662</WLONG>
+                <ELONG>117.749996</ELONG>
+                <SLAT>-31.483336</SLAT>
+                <NLAT>-30.566668</NLAT>
+                <LINE_KM>35665</LINE_KM>
+                <TOTAL_KM/>
+                <LINE_SPACING>250</LINE_SPACING>
+                <LINE_DIRECTION>180</LINE_DIRECTION>
+                <TIE_SPACING/>
+                <SQUARE_KM/>
+                <CRYSTAL_VOLUME>33.6</CRYSTAL_VOLUME>
+                <UP_CRYSTAL_VOLUME>4.2</UP_CRYSTAL_VOLUME>
+                <DIGITAL_DATA>MAG,RAL,ELE</DIGITAL_DATA>
+                <GEODETIC_DATUM>WGS84</GEODETIC_DATUM>
+                <ASL/>
+                <AGL>60</AGL>
+                <MAG_INSTRUMENT>Scintrex CS2</MAG_INSTRUMENT>
+                <RAD_INSTRUMENT>Exploranium GR820</RAD_INSTRUMENT>
+            </ROW>
+        </ROWSET>
+        '''
+
+        # if elem.tag == "IGSN":
+        #     self.survey_id = elem.text
+        # elif elem.tag == "SAMPLEID":
+        #     self.sampleid = elem.text
+
+    def _generate_survey_wkt(self):
         if self.z is not None:
             # wkt = "SRID=" + self.srid + ";POINTZ(" + self.x + " " + self.y + " " + self.z + ")"
             wkt = "<https://epsg.io/" + self.srid + "> " \
@@ -283,7 +197,7 @@ class Survey:
 
         return wkt
 
-    def _generate_sample_gml(self):
+    def _generate_survey_gml(self):
         if self.z is not None:
             gml = '<gml:Point srsDimension="3" srsName="https://epsg.io/' + self.srid + '">' \
                   '<gml:pos>' + self.x + ' ' + self.y + ' ' + self.z + '</gml:pos>' \
@@ -322,12 +236,12 @@ class Survey:
         PROV = Namespace('http://www.w3.org/ns/prov#')
         g.bind('prov', PROV)
 
-        # URI for this sample
-        base_uri = 'http://pid.geoscience.gov.au/sample/'
+        # URI for this survey
+        base_uri = 'http://pid.geoscience.gov.au/survey/'
         this_survey = URIRef(base_uri + self.survey_id)
 
         # define GA
-        ga = URIRef(Survey.URI_GA)
+        ga = URIRef(SurveyRenderer.URI_GA)
 
         # classing the Survey in PROV - relevant to all model options
         g.add((this_survey, RDF.type, PROV.Activity))
@@ -350,8 +264,8 @@ class Survey:
         g.bind('samfl', SAMFL)
 
         # Survey location in GML & WKT, formulation from GeoSPARQL
-        wkt = Literal(self._generate_sample_wkt(), datatype=GEOSP.wktLiteral)
-        gml = Literal(self._generate_sample_gml(), datatype=GEOSP.gmlLiteral)
+        wkt = Literal(self._generate_survey_wkt(), datatype=GEOSP.wktLiteral)
+        gml = Literal(self._generate_survey_gml(), datatype=GEOSP.gmlLiteral)
 
         geometry = BNode()
         g.add((this_survey, PROV.hadLocation, geometry))
@@ -380,34 +294,61 @@ class Survey:
         """
         Exports this instance in HTML, according to a given model from the list of supported models.
 
-        :param model_view: string of one of the model view names available for Sample objects ['igsn', 'dc', '',
+        :param model_view: string of one of the model view names available for survey objects ['igsn', 'dc', '',
             'default']
         :return: HTML string
         """
-        html = '<style>' + \
-               '   table.data {' + \
-               '       border-collapse: collapse;' + \
-               '       border: solid 2px black;' + \
-               '   }' + \
-               '   table.data td, table.data th {' + \
-               '       border: solid 1px black;' + \
-               '       padding: 5px;' + \
-               '   }' + \
-               '</style>'
+        '''
+        <?xml version="1.0" ?>
+        <ROWSET>
+         <ROW>
+          <SURVEYID>921</SURVEYID>
+          <SURVEYNAME>Goomalling, WA, 1996</SURVEYNAME>
+          <STATE>WA</STATE>
+          <OPERATOR>Stockdale Prospecting Ltd.</OPERATOR>
+          <CONTRACTOR>Kevron Geophysics Pty Ltd</CONTRACTOR>
+          <PROCESSOR>Kevron Geophysics Pty Ltd</PROCESSOR>
+          <SURVEY_TYPE>Detailed</SURVEY_TYPE>
+          <DATATYPES>MAG,RAL,ELE</DATATYPES>
+          <VESSEL>Aero Commander</VESSEL>
+          <VESSEL_TYPE>Plane</VESSEL_TYPE>
+          <RELEASEDATE/>
+          <ONSHORE_OFFSHORE>Onshore</ONSHORE_OFFSHORE>
+          <STARTDATE>05-DEC-96</STARTDATE>
+          <ENDDATE>22-DEC-96</ENDDATE>
+          <WLONG>116.366662</WLONG>
+          <ELONG>117.749996</ELONG>
+          <SLAT>-31.483336</SLAT>
+          <NLAT>-30.566668</NLAT>
+          <LINE_KM>35665</LINE_KM>
+          <TOTAL_KM/>
+          <LINE_SPACING>250</LINE_SPACING>
+          <LINE_DIRECTION>180</LINE_DIRECTION>
+          <TIE_SPACING/>
+          <SQUARE_KM/>
+          <CRYSTAL_VOLUME>33.6</CRYSTAL_VOLUME>
+          <UP_CRYSTAL_VOLUME>4.2</UP_CRYSTAL_VOLUME>
+          <DIGITAL_DATA>MAG,RAL,ELE</DIGITAL_DATA>
+          <GEODETIC_DATUM>WGS84</GEODETIC_DATUM>
+          <ASL/>
+          <AGL>60</AGL>
+          <MAG_INSTRUMENT>Scintrex CS2</MAG_INSTRUMENT>
+          <RAD_INSTRUMENT>Exploranium GR820</RAD_INSTRUMENT>
+         </ROW>
+        </ROWSET>
+        '''
 
-        html += '<table class="data">'
+        html = '<table class="lined">'
         html += '   <tr><th>Property</th><th>Value</th></tr>'
         if model_view == 'igsn':
             # TODO: complete the properties in this view
             html += '   <tr><th>IGSN</th><td>' + self.survey_id + '</td></tr>'
             html += '   <tr><th>Identifier</th><td>' + self.survey_id + '</td></tr>'
-            if self.sampleid is not None:
-                html += '   <tr><th>Sample ID</th><td>' + self.sampleid + '</td></tr>'
-            if self.date_acquired is not None:
-                html += '   <tr><th>Date</th><td>' + self.date_acquired.isoformat() + '</td></tr>'
-            if self.sample_type is not None:
-                html += '   <tr><th>Sample Type</th><td><a href="' + self.sample_type + '">' + self.sample_type.split('/')[-1] + '</a></td></tr>'
-            html += '   <tr><th>Sampling Location (WKT)</th><td>' + self._generate_sample_wkt() + '</td></tr>'
+            if self.survey_id is not None:
+                html += '   <tr><th>survey ID</th><td>' + self.survey_id + '</td></tr>'
+            if self.survey_type is not None:
+                html += '   <tr><th>survey Type</th><td><a href="' + self.survey_type + '">' + self.survey_type.split('/')[-1] + '</a></td></tr>'
+            html += '   <tr><th>Sampling Location (WKT)</th><td>' + self._generate_survey_wkt() + '</td></tr>'
             html += '   <tr><th>Current Location</th><td>GA Services building</td></tr>'
             # TODO: make this resolve
             html += '   <tr><th>Sampling Feature</th><td><a style="text-decoration: line-through;" href="' + TERM_LOOKUP['entity_type'][self.entity_type] + '">' + TERM_LOOKUP['entity_type'][self.entity_type] + '</a></td></tr>'
@@ -421,15 +362,15 @@ class Survey:
 
         elif model_view == 'dc':
             html += '   <tr><th>IGSN</th><td>' + self.survey_id + '</td></tr>'
-            html += '   <tr><th>Coverage</th><td>' + self._generate_sample_wkt() + '</td></tr>'
+            html += '   <tr><th>Coverage</th><td>' + self._generate_survey_wkt() + '</td></tr>'
             if self.date_acquired is not None:
                 html += '   <tr><th>Date</th><td>' + self.date_acquired.isoformat() + '</td></tr>'
             if self.remark is not None:
                 html += '   <tr><th>Description</th><td>' + self.remark + '</td></tr>'
             if self.material_type is not None:
                 html += '   <tr><th>Format</th><td>' + self.material_type + '</td></tr>'
-            if self.sample_type is not None:
-                html += '   <tr><th>Type</th><td>' + self.sample_type + '</td></tr>'
+            if self.survey_type is not None:
+                html += '   <tr><th>Type</th><td>' + self.survey_type + '</td></tr>'
 
         html += '</table>'
 
@@ -452,9 +393,6 @@ class ParameterError(ValueError):
     pass
 
 if __name__ == '__main__':
-    # s = Sample('http://fake.com', 'AU100')
-    # print s.export_dc_xml()
-    #
-    # # print s.is_xml_export_valid(open('../tests/sample_eg3_IGSN_schema.xml').read())
-    # # print s.export_as_igsn_xml()
-    pass
+    import config
+    s = SurveyRenderer(config.XML_API_URL_SURVEY ,921)
+    print(s.render(None, None))

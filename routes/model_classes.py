@@ -2,9 +2,9 @@
 This file contains all the HTTP routes for classes from the IGSN model, such as Samples and the Sample Register
 """
 from flask import Blueprint, render_template, request
-import routes_functions
-import settings
-from ldapi import LDAPI, LdapiParameterError
+from routes import routes_functions
+import config
+from ldapi.ldapi import LDAPI, LdapiParameterError
 from routes import model_classes_functions
 import urllib
 
@@ -13,8 +13,8 @@ import urllib
 model_classes = Blueprint('model_classes', __name__)
 
 
-@model_classes.route('/sample/<string:igsn>')
-def sample(igsn):
+@model_classes.route('/survey/<string:survey_id>')
+def survey(survey_id):
     """
     A single Sample
 
@@ -34,7 +34,7 @@ def sample(igsn):
         # if alternates model, return this info from file
         if view == 'alternates':
             class_uri = 'http://pid.geoscience.gov.au/def/ont/igsn#Sample'
-            instance_uri = 'http://pid.geoscience.gov.au/sample/' + igsn
+            instance_uri = 'http://pid.geoscience.gov.au/survey/' + survey_id
             del views_formats['renderer']
             return routes_functions.render_alternates_view(
                 class_uri,
@@ -47,17 +47,17 @@ def sample(igsn):
         else:
             from model.survey import Survey
             try:
-                s = Survey(settings.XML_API_URL_SAMPLE, igsn)
+                s = Survey(config.XML_API_URL_SAMPLE, survey_id)
                 return s.render(view, mimetype)
             except ValueError:
-                return render_template('no_record_sample.html')
+                return render_template('no_record_survey.html')
 
-    except LdapiParameterError, e:
+    except LdapiParameterError as e:
         return routes_functions.client_error_Response(e)
 
 
-@model_classes.route('/sample/')
-def samples():
+@model_classes.route('/surveys/')
+def surveys():
     """
     The Register of Samples
 
@@ -92,5 +92,5 @@ def samples():
             from model import register
             return register.RegisterRenderer(request, class_uri, None).render(view, mime_format)
 
-    except LdapiParameterError, e:
+    except LdapiParameterError as e:
         return routes_functions.client_error_Response(e)

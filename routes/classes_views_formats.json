@@ -5,20 +5,13 @@
     "   alternates  -- a list of all available views and formats",
     "   igsn  -- the igsn-specific view based on the IGSN Ontology",
     ""],
-  "http://pid.geoscience.gov.au/def/ont/igsn#Sample": {
-    "renderer": "Sample",
-    "default": "igsn",
+  "http://pid.geoscience.gov.au/def/ont/gapd#Survey": {
+    "renderer": "Survey",
+    "default": "gapd",
     "alternates": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json", "application/json"],
-    "igsn": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
-    "csirov3": ["application/xml"],
+    "dapd": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+    "argus": ["application/xml"],
     "prov": ["text/turtle", "application/rdf+xml", "application/rdf+json"],
-    "dc": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"]
-  },
-  "http://pid.geoscience.gov.au/def/ont/igsn#SampleRegister": {
-    "renderer": "SamplesRegister",
-    "default": "igsn",
-    "alternates": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json", "application/json"],
-    "igsn": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"]
   },
   "http://purl.org/linked-data/registry#Register":{
     "renderer": "RegisterRenderer",

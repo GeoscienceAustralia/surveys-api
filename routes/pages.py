@@ -4,7 +4,7 @@ This file contains all the HTTP routes for basic pages (usually HTML)
 from flask import Blueprint, Response, request, render_template
 from lxml import etree
 from lxml.builder import ElementMaker
-from ldapi import LDAPI, LdapiParameterError
+from ldapi.ldapi import LDAPI, LdapiParameterError
 from routes import routes_functions
 
 pages = Blueprint('routes', __name__)
@@ -30,7 +30,7 @@ def index():
             request.args.get('_format'),
             views_formats
         )
-    except LdapiParameterError, e:
+    except LdapiParameterError as e:
         return routes_functions.client_error_Response(e)
 
     # select view and format
@@ -72,7 +72,7 @@ def index():
                     em.Keyword('RDF'),
                 ),
                 # TODO: parameterised namespaces not working yet
-                onl.OnlineResource(type="simple", href="http://pid.geoscience.gov.au/service/samples/"),
+                onl.OnlineResource(type="simple", href="http://pid.geoscience.gov.au/service/survey/"),
                 em.ContactInformation(
                     em.ContactPersonPrimary(
                         em.contactPerson('Nicholas Car'),
@@ -106,7 +106,7 @@ def index():
                                 em.Get(
                                     onl.OnlineResource(
                                         type="simple",
-                                        href="http://pid.geoscience.gov.au/service/samples/" +
+                                        href="http://pid.geoscience.gov.au/service/survey/" +
                                              "?_view=getcapabilities&_format=application/xml"
                                     ),
                                 )
@@ -123,7 +123,7 @@ def index():
                                 em.Get(
                                     onl.OnlineResource(
                                         type="simple",
-                                        href="http://pid.geoscience.gov.au/service/samples/{SAMPLE_IGSN}"
+                                        href="http://pid.geoscience.gov.au/service/survey/{SURVEY_ID}"
                                     ),
                                 )
                             )
@@ -139,7 +139,7 @@ def index():
                                 em.Get(
                                     onl.OnlineResource(
                                         type="simple",
-                                        href="http://pid.geoscience.gov.au/service/samples/"
+                                        href="http://pid.geoscience.gov.au/service/survey/"
                                     ),
                                 )
                             )

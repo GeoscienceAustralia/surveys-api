@@ -1,10 +1,10 @@
-from renderer import Renderer
+from model.renderer import Renderer
 from flask import Response, render_template
 from rdflib import Graph, URIRef, RDF, RDFS, XSD, Namespace, Literal
-from ldapi import LDAPI
+from ldapi.ldapi import LDAPI
 from lxml import etree
 import requests
-from StringIO import StringIO
+from io import StringIO
 import settings
 
 
@@ -53,14 +53,13 @@ class RegisterRenderer(Renderer):
                 self.register.append(elem.text)
 
     def validate_xml(self, xml):
-
         parser = etree.XMLParser(dtd_validation=False)
 
         try:
             etree.fromstring(xml, parser)
             return True
         except Exception:
-            print 'not valid xml'
+            print('not valid xml')
             return False
 
     def _get_details_from_oracle_api(self, page_no):
@@ -70,7 +69,6 @@ class RegisterRenderer(Renderer):
         :param page_no: the page number of the total resultset from the Samples Set API
         :return: None
         """
-        #os.environ['NO_PROXY'] = 'ga.gov.au'
         r = requests.get(settings.XML_API_URL_SAMPLESET.format(page_no), timeout=3)
         xml = r.content
 

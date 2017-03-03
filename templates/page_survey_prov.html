@@ -9,14 +9,14 @@
     {% elif view == 'dc' %}
         <h2>Dublin Core view</h2>
     {% endif %}
-    <p><a href="{{ url_for('model_classes.sample', igsn=igsn) }}">html</a> | <a href="{{ url_for('model_classes.sample', igsn=igsn) }}?_view={{ view }}&_format=text/turtle">rdf/turtle</a></p>
+    <p><a href="{{ url_for('model_classes.survey', survey_id=survey_id) }}">html</a> | <a href="{{ url_for('model_classes.survey', survey_id=survey_id) }}?_view={{ view }}&_format=text/turtle">rdf/turtle</a></p>
     {{ placed_html|safe }}
     {% if view != 'alternates' %}
-    <p>Other views of this Sample are listed in the <a href="{{ url_for('model_classes.sample', igsn=igsn) }}?_view=alternates">Alternates View</a>.</p>
+    <p>Other views of this Sample are listed in the <a href="{{ url_for('model_classes.survey', igsn=igsn) }}?_view=alternates">Alternates View</a>.</p>
     {% endif %}
     <h2>Citation</h2>
-    <p>If you wish to cite this sample as you would a publication, please use the following format:</p>
+    <p>If you wish to cite this survey as you would a publication, please use the following format:</p>
     <code style="display:block; margin: 0 5em 0 5em;">
-        Geoscience Australia ({{ year_acquired }}) "Geo Sample {{ igsn }}". A digital catalogue record of a physical sample managed by Geoscience Australia. Accessed {{ date_now }}. <a href="http://pid.geoscience.gov.au/sample/{{ igsn }}">igsn:{{ igsn }}</a>
+        Geoscience Australia ({{ year_acquired }}) "Survey {{ survey_id }}". A digital catalogue record of a data collection survey with outputs managed by Geoscience Australia. Accessed {{ date_now }}. <a href="http://pid.geoscience.gov.au/survey/{{ survey_id }}">igsn:{{ survey_id }}</a>
     </code>
 {% endblock %}

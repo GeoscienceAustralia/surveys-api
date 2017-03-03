@@ -1,6 +1,6 @@
 import json
 import os
-import settings
+import config
 from werkzeug.contrib.cache import SimpleCache
 cache = SimpleCache()
 
@@ -12,7 +12,7 @@ def get_classes_views_formats():
     """
     cvf = cache.get('classes_views_formats')
     if cvf is None:
-        cvf = json.load(open(os.path.join(settings.APP_DIR, 'routes', 'classes_views_formats.json')))
+        cvf = json.load(open(os.path.join(config.APP_DIR, 'routes', 'classes_views_formats.json')))
         # times out never (i.e. on app startup/shutdown)
         cache.set('classes_views_formats', cvf)
     return cvf
