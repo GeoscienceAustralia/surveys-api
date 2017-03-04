@@ -3,12 +3,9 @@ This file contains all the HTTP routes for classes from the IGSN model, such as 
 """
 from flask import Blueprint, render_template, request
 from routes import routes_functions
-import config
 from ldapi.ldapi import LDAPI, LdapiParameterError
 from routes import model_classes_functions
-import urllib
-
-# from oaipmh.datestamp import datestamp_to_datetime, datetime_to_datestamp
+import urllib.parse
 
 model_classes = Blueprint('model_classes', __name__)
 
@@ -20,34 +17,34 @@ def survey(survey_id):
 
     :return: HTTP Response
     """
-    # lists the views and formats available for a Sample
-    views_formats = model_classes_functions.get_classes_views_formats()\
-        .get('http://pid.geoscience.gov.au/def/ont/igsn#Sample')
+    # lists the views and mimetypes available for a Survey
+    views_mimetypes = model_classes_functions.get_classes_views_mimetypes()\
+        .get('http://pid.geoscience.gov.au/def/ont/gapd#Survey')
 
     try:
-        view, mimetype = LDAPI.get_valid_view_and_format(
+        view, mimetype = LDAPI.get_valid_view_and_mimetype(
             request.args.get('_view'),
             request.args.get('_format'),
-            views_formats
+            views_mimetypes
         )
 
         # if alternates model, return this info from file
         if view == 'alternates':
             class_uri = 'http://pid.geoscience.gov.au/def/ont/igsn#Sample'
             instance_uri = 'http://pid.geoscience.gov.au/survey/' + survey_id
-            del views_formats['renderer']
+            del views_mimetypes['renderer']
             return routes_functions.render_alternates_view(
                 class_uri,
-                urllib.quote_plus(class_uri),
+                urllib.parse.quote_plus(class_uri),
                 instance_uri,
-                urllib.quote_plus(instance_uri),
-                views_formats,
+                urllib.parse.quote_plus(instance_uri),
+                views_mimetypes,
                 request.args.get('_format')
             )
         else:
-            from model.survey import Survey
+            from model.survey import SurveyRenderer
             try:
-                s = Survey(config.XML_API_URL_SAMPLE, survey_id)
+                s = SurveyRenderer(survey_id)
                 return s.render(view, mimetype)
             except ValueError:
                 return render_template('no_record_survey.html')
@@ -63,34 +60,33 @@ def surveys():
 
     :return: HTTP Response
     """
-    # lists the views and formats available for a Sample
-    views_formats = model_classes_functions.get_classes_views_formats() \
+    # lists the views and mimetypes available for a Survey Register (a generic Register)
+    views_mimetypes = model_classes_functions.get_classes_views_mimetypes() \
         .get('http://purl.org/linked-data/registry#Register')
 
     try:
-        view, mime_format = LDAPI.get_valid_view_and_format(
+        view, mimetype = LDAPI.get_valid_view_and_mimetype(
             request.args.get('_view'),
             request.args.get('_format'),
-            views_formats
+            views_mimetypes
         )
 
         # if alternates model, return this info from file
         class_uri = 'http://pid.geoscience.gov.au/def/ont/igsn#Sample'
 
         if view == 'alternates':
-
-            del views_formats['renderer']
+            del views_mimetypes['renderer']
             return routes_functions.render_alternates_view(
                 class_uri,
                 urllib.quote_plus(class_uri),
                 None,
                 None,
-                views_formats,
+                views_mimetypes,
                 request.args.get('_format')
             )
         else:
             from model import register
-            return register.RegisterRenderer(request, class_uri, None).render(view, mime_format)
+            return register.RegisterRenderer(request, class_uri, None).render(view, mimetype)
 
     except LdapiParameterError as e:
         return routes_functions.client_error_Response(e)

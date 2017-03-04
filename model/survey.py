@@ -5,12 +5,13 @@ import requests
 from datetime import datetime
 from ldapi.ldapi import LDAPI
 from flask import Response, render_template
+import config
 
 
 class SurveyRenderer:
     """
     This class represents a Survey and methods in this class allow one to be loaded from GA's internal Oracle
-    ARGUS database and to be exported in a number of formats including RDF, according to the 'GA Public Data Ontology'
+    ARGUS database and to be exported in a number of mimetypes including RDF, according to the 'GA Public Data Ontology'
     and PROV-O, the Provenance Ontology.
     """
 
@@ -18,9 +19,7 @@ class SurveyRenderer:
     URI_INAPPLICABLE = 'http://www.opengis.net/def/nil/OGC/0/inapplicable'
     URI_GA = 'http://pid.geoscience.gov.au/org/ga'
 
-    def __init__(self, oracle_api_survey_url, survey_id):
-        self.oracle_api_survey_url = oracle_api_survey_url
-
+    def __init__(self, survey_id):
         self.survey_id = survey_id
         self.survey_name = None
         self.state = None
@@ -58,11 +57,12 @@ class SurveyRenderer:
 
         # populate all instance variables from API
         # TODO: lazy load this, i.e. only populate if a view that need populating is loaded which is every view except for Alternates
-        self._populate_from_oracle_api()
+        self._populate_from_oracle_api(survey_id)
 
     def render(self, view, mimetype):
         if view == 'gapd':
-            return self.export_as_html(model_view=view)
+            if mimetype == 'text/html':
+                return self.export_as_html(model_view=view)
         elif view == 'prov':
             return Response(self.export_as_rdf('prov', 'text/turtle'), mimetype=mimetype)
 
@@ -76,14 +76,14 @@ class SurveyRenderer:
             print('not valid xml')
             return False
 
-    def _populate_from_oracle_api(self):
+    def _populate_from_oracle_api(self, survey_id):
         """
         Populates this instance with data from the Oracle ARGUS table API
         """
         # internal URI
         # os.environ['NO_PROXY'] = 'ga.gov.au'
         # call API
-        r = requests.get(self.oracle_api_survey_url.format(self.survey_id))
+        r = requests.get(config.XML_API_URL_SURVEY.format(survey_id))
         # deal with missing XML declaration
         if "No data" in r.text:
             raise ParameterError('No Data')
@@ -103,42 +103,9 @@ class SurveyRenderer:
         :param xml: XML according to GA's Oracle XML API from the Samples DB
         :return: None
         """
-        # turn the XML doc into a Python object
-        root = objectify.fromstring(xml)
-
-        self.survey_name = root.ROW.SURVEYNAME
-        self.state = root.ROW.SURVEYNAME
-        self.operator = root.ROW.SURVEYNAME
-        self.contractor = root.ROW.SURVEYNAME
-        self.processor = root.ROW.SURVEYNAME
-        self.survey_type = root.ROW.SURVEYNAME
-        self.data_types = root.ROW.SURVEYNAME
-        self.vessel = root.ROW.SURVEYNAME
-        self.vessel_type = root.ROW.SURVEYNAME
-        self.release_date = root.ROW.SURVEYNAME
-        self.onshore_offshore = root.ROW.SURVEYNAME
-        self.start_date = root.ROW.SURVEYNAME
-        self.end_date = root.ROW.SURVEYNAME
-        self.w_long = root.ROW.SURVEYNAME
-        self.e_long = root.ROW.SURVEYNAME
-        self.s_lat = root.ROW.SURVEYNAME
-        self.n_lat = root.ROW.SURVEYNAME
-        self.line_km = root.ROW.SURVEYNAME
-        self.total_km = root.ROW.SURVEYNAME
-        self.line_spacing = root.ROW.SURVEYNAME
-        self.line_direction = root.ROW.SURVEYNAME
-        self.tie_spacing = root.ROW.SURVEYNAME
-        self.square_km = root.ROW.SURVEYNAME
-        self.crystal_volume = root.ROW.SURVEYNAME
-        self.up_crystal_volume = root.ROW.SURVEYNAME
-        self.digital_data = root.ROW.SURVEYNAME
-        self.geodetic_datum = root.ROW.SURVEYNAME
-        self.asl = root.ROW.SURVEYNAME
-        self.agl = root.ROW.SURVEYNAME
-        self.mag_instrument = root.ROW.SURVEYNAME
-        self.rad_instrument = root.ROW.SURVEYNAME
-
         '''
+        example from API: http://www.ga.gov.au/www/argus.argus_api.survey?pSurveyNo=921
+
         <?xml version="1.0" ?>
         <ROWSET>
             <ROW>
@@ -177,11 +144,40 @@ class SurveyRenderer:
             </ROW>
         </ROWSET>
         '''
+        # turn the XML doc into a Python object
+        root = objectify.fromstring(xml)
 
-        # if elem.tag == "IGSN":
-        #     self.survey_id = elem.text
-        # elif elem.tag == "SAMPLEID":
-        #     self.sampleid = elem.text
+        self.survey_name = root.ROW.SURVEYNAME if root.ROW.SURVEYNAME != '' else None
+        self.state = root.ROW.STATE if root.ROW.STATE != '' else None
+        self.operator = root.ROW.OPERATOR if root.ROW.OPERATOR != '' else None
+        self.contractor = root.ROW.CONTRACTOR if root.ROW.CONTRACTOR != '' else None
+        self.processor = root.ROW.PROCESSOR if root.ROW.PROCESSOR != '' else None
+        self.survey_type = root.ROW.SURVEY_TYPE if root.ROW.SURVEY_TYPE != '' else None
+        self.data_types = root.ROW.DATATYPES if root.ROW.DATATYPES != '' else None
+        self.vessel = root.ROW.VESSEL if root.ROW.VESSEL != '' else None
+        self.vessel_type = root.ROW.VESSEL_TYPE if root.ROW.VESSEL_TYPE != '' else None
+        self.release_date = datetime.strptime(root.ROW.RELEASEDATE.text, '%d-%b-%y') if root.ROW.RELEASEDATE != '' else None
+        self.onshore_offshore = root.ROW.ONSHORE_OFFSHORE if root.ROW.ONSHORE_OFFSHORE != '' else None
+        self.start_date = datetime.strptime(root.ROW.STARTDATE.text, '%d-%b-%y') if root.ROW.STARTDATE != '' else None
+        self.end_date = datetime.strptime(root.ROW.ENDDATE.text, '%d-%b-%y') if root.ROW.ENDDATE != '' else None
+        self.w_long = root.ROW.WLONG if root.ROW.WLONG != '' else None
+        self.e_long = root.ROW.ELONG if root.ROW.ELONG != '' else None
+        self.s_lat = root.ROW.SLAT if root.ROW.SLAT != '' else None
+        self.n_lat = root.ROW.NLAT if root.ROW.NLAT != '' else None
+        self.line_km = root.ROW.LINE_KM if root.ROW.LINE_KM != '' else None
+        self.total_km = root.ROW.TOTAL_KM if root.ROW.TOTAL_KM != '' else None
+        self.line_spacing = root.ROW.LINE_SPACING if root.ROW.LINE_SPACING != '' else None
+        self.line_direction = root.ROW.LINE_DIRECTION if root.ROW.LINE_DIRECTION != '' else None
+        self.tie_spacing = root.ROW.TIE_SPACING if root.ROW.TIE_SPACING != '' else None
+        self.square_km = root.ROW.SQUARE_KM if root.ROW.SQUARE_KM != '' else None
+        self.crystal_volume = root.ROW.CRYSTAL_VOLUME if root.ROW.CRYSTAL_VOLUME != '' else None
+        self.up_crystal_volume = root.ROW.UP_CRYSTAL_VOLUME if root.ROW.UP_CRYSTAL_VOLUME != '' else None
+        self.digital_data = root.ROW.DIGITAL_DATA if root.ROW.DIGITAL_DATA != '' else None
+        self.geodetic_datum = root.ROW.GEODETIC_DATUM if root.ROW.GEODETIC_DATUM != '' else None
+        self.asl = root.ROW.ASL if root.ROW.ASL != '' else None
+        self.agl = root.ROW.AGL if root.ROW.AGL != '' else None
+        self.mag_instrument = root.ROW.MAG_INSTRUMENT if root.ROW.MAG_INSTRUMENT != '' else None
+        self.rad_instrument = root.ROW.RAD_INSTRUMENT if root.ROW.RAD_INSTRUMENT != '' else None
 
     def _generate_survey_wkt(self):
         if self.z is not None:
@@ -215,11 +211,11 @@ class SurveyRenderer:
     def export_as_rdf(self, model_view='default', rdf_mime='text/turtle'):
         """
         Exports this instance in RDF, according to a given model from the list of supported models,
-        in a given rdflib RDF format
+        in a given rdflib RDF mimetype
 
         :param model_view: string of one of the model view names available for Sample objects ['igsn', 'dc', '',
             'default']
-        :param rdf_mime: string of one of the rdflib serlialization format ['n3', 'nquads', 'nt', 'pretty-xml', 'trig',
+        :param rdf_mime: string of one of the rdflib serlialization mimetype ['n3', 'nquads', 'nt', 'pretty-xml', 'trig',
             'trix', 'turtle', 'xml'], from http://rdflib3.readthedocs.io/en/latest/plugin_serializers.html
         :return: RDF string
         """
@@ -290,12 +286,11 @@ class SurveyRenderer:
 
         return g.serialize(format=LDAPI.get_rdf_parser_for_mimetype(rdf_mime))
 
-    def export_as_html(self, model_view='default'):
+    def export_as_html(self, model_view='gapd'):
         """
         Exports this instance in HTML, according to a given model from the list of supported models.
 
-        :param model_view: string of one of the model view names available for survey objects ['igsn', 'dc', '',
-            'default']
+        :param model_view: string of one of the model view names available for survey objects
         :return: HTML string
         """
         '''
@@ -337,62 +332,69 @@ class SurveyRenderer:
          </ROW>
         </ROWSET>
         '''
+        if model_view == 'gapd':
+            return render_template(
+                'page_survey.html',
+                survey_id=self.survey_id,
+                survey_name=self.survey_name,
+                state=self.state,
+                operator=self.operator,
+                contractor=self.contractor,
+                processor=self.processor,
+                survey_type=self.survey_type,
+                data_types=self.data_types,
+                vessel=self.vessel,
+                vessel_type=self.vessel_type,
+                release_date=self.release_date,
+                onshore_offshore=self.onshore_offshore,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                w_long=self.w_long,
+                e_long=self.e_long,
+                s_lat=self.s_lat,
+                n_lat=self.n_lat,
+                line_km=self.line_km,
+                total_km=self.total_km,
+                line_spacing=self.line_spacing,
+                line_direction=self.line_direction,
+                tie_spacing=self.tie_spacing,
+                square_km=self.square_km,
+                crystal_volume=self.crystal_volume,
+                up_crystal_volume=self.up_crystal_volume,
+                digital_data=self.digital_data,
+                geodetic_datum=self.geodetic_datum,
+                asl=self.asl,
+                agl=self.agl,
+                mag_instrument=self.mag_instrument,
+                rad_instrument=self.rad_instrument,
+                srid=self.srid
+            )
 
-        html = '<table class="lined">'
-        html += '   <tr><th>Property</th><th>Value</th></tr>'
-        if model_view == 'igsn':
-            # TODO: complete the properties in this view
-            html += '   <tr><th>IGSN</th><td>' + self.survey_id + '</td></tr>'
-            html += '   <tr><th>Identifier</th><td>' + self.survey_id + '</td></tr>'
-            if self.survey_id is not None:
-                html += '   <tr><th>survey ID</th><td>' + self.survey_id + '</td></tr>'
-            if self.survey_type is not None:
-                html += '   <tr><th>survey Type</th><td><a href="' + self.survey_type + '">' + self.survey_type.split('/')[-1] + '</a></td></tr>'
-            html += '   <tr><th>Sampling Location (WKT)</th><td>' + self._generate_survey_wkt() + '</td></tr>'
-            html += '   <tr><th>Current Location</th><td>GA Services building</td></tr>'
-            # TODO: make this resolve
-            html += '   <tr><th>Sampling Feature</th><td><a style="text-decoration: line-through;" href="' + TERM_LOOKUP['entity_type'][self.entity_type] + '">' + TERM_LOOKUP['entity_type'][self.entity_type] + '</a></td></tr>'
-            if self.method_type is not None:
-                html += '   <tr><th>Method Type</th><td><a href="' + self.method_type + '">' + self.method_type.split('/')[-1] + '</a></td></tr>'
-            # TODO: replace with dynamic
-            html += '   <tr><th>Access Rights</th><td><a href="http://pid.geoscience.gov.au/def/voc/igsn-codelists/Public">Public</a></td></tr>'
-            html += '   <tr><th>Publisher</th><td><a href="http://pid.geoscience.gov.au/org/ga">Geoscience Australia</a></td></tr>'
-            if self.remark is not None:
-                html += '   <tr><th>Description</th><td>' + self.remark + '</td></tr>'
-
-        elif model_view == 'dc':
-            html += '   <tr><th>IGSN</th><td>' + self.survey_id + '</td></tr>'
-            html += '   <tr><th>Coverage</th><td>' + self._generate_survey_wkt() + '</td></tr>'
-            if self.date_acquired is not None:
-                html += '   <tr><th>Date</th><td>' + self.date_acquired.isoformat() + '</td></tr>'
-            if self.remark is not None:
-                html += '   <tr><th>Description</th><td>' + self.remark + '</td></tr>'
-            if self.material_type is not None:
-                html += '   <tr><th>Format</th><td>' + self.material_type + '</td></tr>'
-            if self.survey_type is not None:
-                html += '   <tr><th>Type</th><td>' + self.survey_type + '</td></tr>'
-
-        html += '</table>'
-
-        if self.date_acquired is not None:
-            year_acquired = datetime.strftime(self.date_acquired, '%Y')
-        else:
-            year_acquired = 'XXXX'
-
-        return render_template(
-            'page_survey.html',
-            view=model_view,
-            igsn=self.survey_id,
-            year_acquired=year_acquired,
-            placed_html=html,
-            date_now=datetime.now().strftime('%d %B %Y')
-        )
+    # @staticmethod
+    # def render_template_local(template_filename, **context):
+    #     import os
+    #     PATH = os.path.dirname(os.path.abspath(__file__))
+    #     TEMPLATE_ENVIRONMENT = Environment(
+    #         autoescape=False,
+    #         loader=FileSystemLoader(os.path.join(os.path.dirname(PATH), 'templates')),
+    #         trim_blocks=False)
+    #     return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
 
 
 class ParameterError(ValueError):
     pass
 
 if __name__ == '__main__':
+    import routes.model_classes_functions
+    # get the valid views and mimetypes for a Survey
+    survey_views_mimetypes = routes.model_classes_functions.get_classes_views_mimetypes()\
+        .get('http://pid.geoscience.gov.au/def/ont/gapd#Survey')
+    # get my required view & mimetype
+    v, f = LDAPI.get_valid_view_and_mimetype(
+        None,
+        None,
+        survey_views_mimetypes
+    )
     import config
-    s = SurveyRenderer(config.XML_API_URL_SURVEY ,921)
-    print(s.render(None, None))
+    s = SurveyRenderer(921)
+    print(s.render(v, f))

@@ -5,7 +5,7 @@ from ldapi.ldapi import LDAPI
 from lxml import etree
 import requests
 from io import StringIO
-import settings
+import config
 
 
 class RegisterRenderer(Renderer):
@@ -69,7 +69,7 @@ class RegisterRenderer(Renderer):
         :param page_no: the page number of the total resultset from the Samples Set API
         :return: None
         """
-        r = requests.get(settings.XML_API_URL_SAMPLESET.format(page_no), timeout=3)
+        r = requests.get(config.XML_API_URL_SURVEYSET.format(page_no), timeout=3)
         xml = r.content
 
         if self.validate_xml(xml):

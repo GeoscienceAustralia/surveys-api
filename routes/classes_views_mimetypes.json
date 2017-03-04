@@ -6,12 +6,12 @@
     "   igsn  -- the igsn-specific view based on the IGSN Ontology",
     ""],
   "http://pid.geoscience.gov.au/def/ont/gapd#Survey": {
-    "renderer": "Survey",
+    "renderer": "SurveyRenderer",
     "default": "gapd",
     "alternates": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json", "application/json"],
     "dapd": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
     "argus": ["application/xml"],
-    "prov": ["text/turtle", "application/rdf+xml", "application/rdf+json"],
+    "prov": ["text/turtle", "application/rdf+xml", "application/rdf+json"]
   },
   "http://purl.org/linked-data/registry#Register":{
     "renderer": "RegisterRenderer",

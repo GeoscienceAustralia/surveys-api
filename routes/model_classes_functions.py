@@ -1,18 +1,18 @@
 import json
 import os
-import config
 from werkzeug.contrib.cache import SimpleCache
 cache = SimpleCache()
 
 
-def get_classes_views_formats():
+def get_classes_views_mimetypes():
     """
-    Caches the graph_classes JSON file in memory
-    :return: a Python object parsed from the classes_views_formats.json file
+    Caches the classes_views_mimetypes.json file in memory as a Python object
+    :return: a Python object parsed from the classes_views_mimetypes.json file
     """
-    cvf = cache.get('classes_views_formats')
+    cvf = cache.get('classes_views_mimetypes')
     if cvf is None:
-        cvf = json.load(open(os.path.join(config.APP_DIR, 'routes', 'classes_views_formats.json')))
+        json_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'classes_views_mimetypes.json'), 'r')
+        cvf = json.load(json_file)
         # times out never (i.e. on app startup/shutdown)
-        cache.set('classes_views_formats', cvf)
+        cache.set('classes_views_mimetypes', cvf)
     return cvf

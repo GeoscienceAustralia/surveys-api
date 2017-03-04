@@ -17,7 +17,7 @@ def index():
 
     :return: HTTP Response (HTML page only)
     """
-    views_formats = {
+    views_mimetypes = {
         'default': 'landingpage',
         'alternates': ['text/html'],
         'landingpage': ['text/html'],
@@ -25,18 +25,18 @@ def index():
     }
 
     try:
-        view, mime_format = LDAPI.get_valid_view_and_format(
+        view, mimetype = LDAPI.get_valid_view_and_mimetype(
             request.args.get('_view'),
             request.args.get('_format'),
-            views_formats
+            views_mimetypes
         )
     except LdapiParameterError as e:
         return routes_functions.client_error_Response(e)
 
-    # select view and format
+    # select view and mimetype
 
     if view != 'getcapabilities':
-        if mime_format == 'text/html':
+        if mimetype == 'text/html':
             return render_template(
                 'page_index.html',
             )
@@ -47,7 +47,7 @@ def index():
                 mimetype='text/plain')
     elif view == 'getcapabilities':
         # move GetCapabilities response formulation to a Renderer class
-        # only a single format for this view
+        # only a single mimetype for this view
         em = ElementMaker(
             namespace="http://fake.com/ldapi",
             nsmap={

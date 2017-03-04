@@ -10,7 +10,7 @@ class LDAPI:
     Version 1.0
     """
 
-    # maps HTTP MIMETYPES to rdflib's RDF parsing formats
+    # maps HTTP MIMETYPES to rdflib's RDF parsing mimetypes
     MIMETYPES_PARSERS = [
         ('text/turtle', 'turtle'),
         ('application/rdf+xml', 'xml'),
@@ -74,57 +74,57 @@ class LDAPI:
             return False
 
     @staticmethod
-    def valid_view(view, views_formats):
+    def valid_view(view, views_mimetypes):
         """
         Determines whether a requested model model is valid and, if it is, it returns it
 
         :return: model name (string) or False
         """
         if view is not None:
-            if view in views_formats.iterkeys():
+            if view in views_mimetypes.keys():
                 return view
             else:
                 raise LdapiParameterError(
                     'The _view parameter is invalid. For this object, it must be one of {0}.'
-                    .format(', '.join(views_formats.iterkeys()))
+                    .format(', '.join(views_mimetypes.iterkeys()))
                 )
         else:
-            # views_formats will give us the default model
-            return views_formats['default']
+            # views_mimetypes will give us the default model
+            return views_mimetypes['default']
 
     @staticmethod
-    def valid_format(format, view, views_formats):
+    def valid_mimetype(mimetype, view, views_mimetypes):
         """
-        Determines whether a requested format for a particular model model is valid and, if it is, it returns it
+        Determines whether a requested mimetype for a particular model model is valid and, if it is, it returns it
 
         :return: model name (string) or False
         """
-        if format is not None:
-            if format.replace(' ', '+') in views_formats[view]:
-                return format.replace(' ', '+')
+        if mimetype is not None:
+            if mimetype.replace(' ', '+') in views_mimetypes[view]:
+                return mimetype.replace(' ', '+')
             else:
                 raise LdapiParameterError(
-                    'The _format parameter is invalid. For this model model, format should be one of {0}.'
-                        .format(', '.join(views_formats[view]))
+                    'The _mimetype parameter is invalid. For this model model, mimetype should be one of {0}.'
+                    .format(', '.join(views_mimetypes[view]))
                 )
         else:
             # HTML is default
             return 'text/html'
 
     @staticmethod
-    def get_valid_view_and_format(view, format, views_formats):
+    def get_valid_view_and_mimetype(view, mimetype, views_mimetypes):
         """
-        If both the model and the format are valid, return them
+        If both the model and the mimetype are valid, return them
         :param view: the model model parameter
-        :param format: the MIMETYPE format parameter
-        :param views_formats: the allowed model and their formats in this instance
-        :return: valid model and format
+        :param mimetype: the MIMETYPE mimetype parameter
+        :param views_mimetypes: the allowed model and their mimetypes in this instance
+        :return: valid model and mimetype
         """
-        view = LDAPI.valid_view(view, views_formats)
-        format = LDAPI.valid_format(format, view, views_formats)
-        if view and format:
-            # return valid model and format
-            return view, format
+        view = LDAPI.valid_view(view, views_mimetypes)
+        mimetype = LDAPI.valid_mimetype(mimetype, view, views_mimetypes)
+        if view and mimetype:
+            # return valid model and mimetype
+            return view, mimetype
 
     @staticmethod
     def client_error_Response(error_message):

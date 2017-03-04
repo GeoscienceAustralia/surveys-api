@@ -1,1 +1,1 @@
-from survey import Survey
+from model.survey import SurveyRenderer
