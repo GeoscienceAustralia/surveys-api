@@ -60,15 +60,18 @@ class SurveyRenderer:
         self._populate_from_oracle_api(survey_id)
 
     def render(self, view, mimetype):
+        if self.survey_name is None:
+            return Response('Survey with ID {} not found.'.format(self.survey_id), status=404, mimetype='text/plain')
         if view == 'gapd':
             if mimetype == 'text/html':
                 return self.export_as_html(model_view=view)
             else:  # only other legal MIMETYPES are RDF
                 return self.export_as_rdf()
         elif view == 'argus':
-            # just return the XML directly from the XML API
+            # just return the XML directly from the XML API, no other formats allowed for this view
             return redirect(config.XML_API_URL_SURVEY.format(self.survey_id), code=303)
         elif view == 'prov':
+            # TODO: allow an HTML page & the vis.js visualisation of the PROV data
             return Response(self.export_as_rdf('prov', 'text/turtle'), mimetype=mimetype)
 
     def validate_xml(self, xml):
