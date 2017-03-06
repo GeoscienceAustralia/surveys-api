@@ -4,7 +4,7 @@ from rdflib import Graph, URIRef, RDF, XSD, Namespace, Literal, BNode
 import requests
 from datetime import datetime
 from ldapi.ldapi import LDAPI
-from flask import Response, render_template
+from flask import Response, render_template, redirect
 import config
 
 
@@ -63,6 +63,11 @@ class SurveyRenderer:
         if view == 'gapd':
             if mimetype == 'text/html':
                 return self.export_as_html(model_view=view)
+            else:  # only other legal MIMETYPES are RDF
+                return self.export_as_rdf()
+        elif view == 'argus':
+            # just return the XML directly from the XML API
+            return redirect(config.XML_API_URL_SURVEY.format(self.survey_id), code=303)
         elif view == 'prov':
             return Response(self.export_as_rdf('prov', 'text/turtle'), mimetype=mimetype)
 

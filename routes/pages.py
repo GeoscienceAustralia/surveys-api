@@ -1,13 +1,28 @@
 """
 This file contains all the HTTP routes for basic pages (usually HTML)
 """
-from flask import Blueprint, Response, request, render_template
+import os
+from flask import Blueprint, Response, request, render_template, send_from_directory
 from lxml import etree
 from lxml.builder import ElementMaker
 from ldapi.ldapi import LDAPI, LdapiParameterError
 from routes import routes_functions
 
 pages = Blueprint('routes', __name__)
+
+
+@pages.route('/favicon.ico')
+def favicon():
+    favicon_path = os.path.join(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(__file__)
+            )
+        ),
+        'static',
+        'img'
+    )
+    return send_from_directory(favicon_path, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @pages.route('/')

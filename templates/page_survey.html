@@ -2,7 +2,8 @@
 
 {% block content %}
     <h1>Survey</h1>
-    <h2><a href="http://pid.geoscience.gov.au/def/ont/gapd">GAPD Model</a> Properties</h2>
+    <h2>Properties</h2>
+    <p>These properties are those listed in the <a href="http://pid.geoscience.gov.au/def/ont/gapd">GAPD Model</a> of a Survey.</p>
     <table class="lined">
         <tr><th>Property</th><th>Value</th></tr>
         <tr><td>survey_id</td><td>{{ survey_id }}</td></tr>
@@ -39,8 +40,8 @@
         <tr><td>rad_instrument</td><td>{{ rad_instrument }}</td></tr>
         <tr><td>srid</td><td>{{ srid }}</td></tr>
     </table>
-    <h3>Other views</h3>
-    <p>Other views of this Sample are listed in the <a href="{{ url_for('model_classes.survey', survey_id=survey_id) }}?_view=alternates">Alternates View</a>.</p>
+    <h2>Other views</h2>
+    <p>Other model views of a Survey are listed in the <a href="{{ url_for('model_classes.survey', survey_id=survey_id) }}?_view=alternates">Alternates View</a>.</p>
 
     <h2>Citation</h2>
     <p>If you wish to cite this survey as you would a publication, please use the following format:</p>

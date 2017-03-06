@@ -30,14 +30,15 @@ def survey(survey_id):
 
         # if alternates model, return this info from file
         if view == 'alternates':
-            class_uri = 'http://pid.geoscience.gov.au/def/ont/igsn#Sample'
+            class_uri = 'http://pid.geoscience.gov.au/def/ont/gapd#Survey'
+            class_uri_name = class_uri.split('#')[1]
             instance_uri = 'http://pid.geoscience.gov.au/survey/' + survey_id
             del views_mimetypes['renderer']
             return routes_functions.render_alternates_view(
-                class_uri,
+                class_uri_name,
                 urllib.parse.quote_plus(class_uri),
                 instance_uri,
-                urllib.parse.quote_plus(instance_uri),
+                instance_uri,
                 views_mimetypes,
                 request.args.get('_format')
             )
@@ -53,7 +54,7 @@ def survey(survey_id):
         return routes_functions.client_error_Response(e)
 
 
-@model_classes.route('/surveys/')
+@model_classes.route('/survey/')
 def surveys():
     """
     The Register of Samples
