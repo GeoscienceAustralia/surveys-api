@@ -5,7 +5,8 @@ from flask import Blueprint, render_template, request
 from routes import routes_functions
 from ldapi.ldapi import LDAPI, LdapiParameterError
 from routes import model_classes_functions
-import urllib.parse
+# import urllib.parse
+from urlparse import urlparse
 
 model_classes = Blueprint('model_classes', __name__)
 
@@ -48,7 +49,7 @@ def survey(survey_id):
                 s = SurveyRenderer(survey_id)
                 return s.render(view, mimetype)
             except ValueError:
-                return render_template('no_record_survey.html')
+                return render_template('page_no_survey_record.html'), 404
 
     except LdapiParameterError as e:
         return routes_functions.client_error_Response(e)

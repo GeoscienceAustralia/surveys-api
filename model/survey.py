@@ -59,6 +59,10 @@ class SurveyRenderer:
         # TODO: lazy load this, i.e. only populate if a view that need populating is loaded which is every view except for Alternates
         self._populate_from_oracle_api(survey_id)
 
+        # clean-up required vars
+        if self.end_date is None:
+            self.end_date = datetime(1900, 1, 1)
+
     def render(self, view, mimetype):
         if self.survey_name is None:
             return Response('Survey with ID {} not found.'.format(self.survey_id), status=404, mimetype='text/plain')
