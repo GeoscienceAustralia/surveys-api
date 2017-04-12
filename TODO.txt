@@ -1,0 +1,10 @@
+* surveys register
+    * is the XML API working?
+        * if so, connect to it like Samples API
+* PROV view for a Survey
+    * copy code from PROMs
+    * show SVG output too
+    * link Survey Activity to all the various PROV data properties (start/end) and objects, e.g. Agents, known
+* tidy Survey default view HTML
+    * format data as data, not dateTime
+    * create one vocab term URI instead of text (vessle: aeroplane, ship etc)

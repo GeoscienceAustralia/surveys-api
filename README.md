@@ -93,8 +93,10 @@ This code repository is developed and maintained by [Geoscience Australia](http:
 
 ### Authors and Contact
 **Nicholas Car**  
+Data Architect  
 Geoscience Australia  
-<nicholas.car@ga.gov.au>   
+<nicholas.car@ga.gov.au>  
+<http://orcid.org/0000-0002-8742-7730> 
   
 **Alex Ip**  
 Geoscience Australia  
