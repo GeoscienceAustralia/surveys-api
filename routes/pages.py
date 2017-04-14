@@ -36,7 +36,7 @@ def index():
         'default': 'landingpage',
         'alternates': ['text/html'],
         'landingpage': ['text/html'],
-        'getcapabilities': ['application/xml']
+        'getcapabilities': ['text/xml']
     }
 
     try:
@@ -115,14 +115,14 @@ def index():
             em.Capability(
                 em.Request(
                     em.GetCapabilities(
-                        em.Format('application/xml'),
+                        em.Format('text/xml'),
                         em.DCPType(
                             em.HTTP(
                                 em.Get(
                                     onl.OnlineResource(
                                         type="simple",
                                         href="http://pid.geoscience.gov.au/service/survey/" +
-                                             "?_view=getcapabilities&_format=application/xml"
+                                             "?_view=getcapabilities&_format=text/xml"
                                     ),
                                 )
                             )
@@ -165,7 +165,7 @@ def index():
             )
         )
         xml = etree.tostring(doc, pretty_print=True, xml_declaration=True, encoding='UTF-8')
-        return Response(xml, status=200, mimetype='application/xml')
+        return Response(xml, status=200, mimetype='text/xml')
 
 
 @pages.route('/page/about')

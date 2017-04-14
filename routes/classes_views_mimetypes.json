@@ -10,7 +10,7 @@
     "default": "gapd",
     "alternates": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json", "application/json"],
     "gapd": ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
-    "argus": ["application/xml"],
+    "argus": ["text/xml"],
     "prov": ["text/turtle", "application/rdf+xml", "application/rdf+json"]
   },
   "http://purl.org/linked-data/registry#Register":{

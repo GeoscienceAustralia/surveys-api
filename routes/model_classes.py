@@ -37,7 +37,7 @@ def survey(survey_id):
             del views_mimetypes['renderer']
             return routes_functions.render_alternates_view(
                 class_uri_name,
-                urllib.quote_plus(class_uri),
+                class_uri,
                 instance_uri,
                 instance_uri,
                 views_mimetypes,
@@ -75,7 +75,7 @@ def surveys():
         )
 
         # if alternates model, return this info from file
-        class_uri = 'http://pid.geoscience.gov.au/def/ont/igsn#Sample'
+        class_uri = 'http://purl.org/linked-data/registry#Register'
 
         if view == 'alternates':
             del views_mimetypes['renderer']
