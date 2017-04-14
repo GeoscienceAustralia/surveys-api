@@ -1,6 +1,6 @@
 from lxml import etree
 from lxml import objectify
-from rdflib import Graph, URIRef, RDF, XSD, Namespace, Literal, BNode
+from rdflib import Graph, URIRef, RDF, RDFS, XSD, Namespace, Literal, BNode
 import requests
 from datetime import datetime
 from ldapi.ldapi import LDAPI
@@ -59,6 +59,14 @@ class SurveyRenderer:
         # TODO: lazy load this, i.e. only populate if a view that need populating is loaded which is every view except for Alternates
         self._populate_from_oracle_api(survey_id)
 
+        self.wkt_polygon = 'SRID=8311;POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(
+            self.w_long, self.n_lat,
+            self.e_long, self.n_lat,
+            self.e_long, self.s_lat,
+            self.e_long, self.s_lat,
+            self.w_long, self.n_lat
+        )
+
         # clean-up required vars
         if self.end_date is None:
             self.end_date = datetime(1900, 1, 1)
@@ -68,15 +76,20 @@ class SurveyRenderer:
             return Response('Survey with ID {} not found.'.format(self.survey_id), status=404, mimetype='text/plain')
         if view == 'gapd':
             if mimetype == 'text/html':
-                return self.export_as_html(model_view=view)
+                return self.export_html(model_view=view)
             else:  # only other legal MIMETYPES are RDF
-                return self.export_as_rdf()
+                return Response(
+                    self.export_rdf('gapd', mimetype),
+                    mimetype=mimetype
+                )
         elif view == 'argus':
             # just return the XML directly from the XML API, no other formats allowed for this view
             return redirect(config.XML_API_URL_SURVEY.format(self.survey_id), code=303)
         elif view == 'prov':
-            # TODO: allow an HTML page & the vis.js visualisation of the PROV data
-            return Response(self.export_as_rdf('prov', 'text/turtle'), mimetype=mimetype)
+            if mimetype == 'text/html':
+                return self.export_html(model_view=view)
+            else:
+                return Response(self.export_rdf('prov', mimetype), mimetype=mimetype)
 
     def validate_xml(self, xml):
         parser = etree.XMLParser(dtd_validation=False)
@@ -168,10 +181,10 @@ class SurveyRenderer:
         self.data_types = root.ROW.DATATYPES if root.ROW.DATATYPES != '' else None
         self.vessel = root.ROW.VESSEL if root.ROW.VESSEL != '' else None
         self.vessel_type = root.ROW.VESSEL_TYPE if root.ROW.VESSEL_TYPE != '' else None
-        self.release_date = datetime.strptime(root.ROW.RELEASEDATE.text, '%d-%b-%y') if root.ROW.RELEASEDATE != '' else None
+        self.release_date = datetime.strptime(root.ROW.RELEASEDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.RELEASEDATE != '' else None
         self.onshore_offshore = root.ROW.ONSHORE_OFFSHORE if root.ROW.ONSHORE_OFFSHORE != '' else None
-        self.start_date = datetime.strptime(root.ROW.STARTDATE.text, '%d-%b-%y') if root.ROW.STARTDATE != '' else None
-        self.end_date = datetime.strptime(root.ROW.ENDDATE.text, '%d-%b-%y') if root.ROW.ENDDATE != '' else None
+        self.start_date = datetime.strptime(root.ROW.STARTDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.STARTDATE != '' else None
+        self.end_date = datetime.strptime(root.ROW.ENDDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.ENDDATE != '' else None
         self.w_long = root.ROW.WLONG if root.ROW.WLONG != '' else None
         self.e_long = root.ROW.ELONG if root.ROW.ELONG != '' else None
         self.s_lat = root.ROW.SLAT if root.ROW.SLAT != '' else None
@@ -191,20 +204,6 @@ class SurveyRenderer:
         self.mag_instrument = root.ROW.MAG_INSTRUMENT if root.ROW.MAG_INSTRUMENT != '' else None
         self.rad_instrument = root.ROW.RAD_INSTRUMENT if root.ROW.RAD_INSTRUMENT != '' else None
 
-    def _generate_survey_wkt(self):
-        if self.z is not None:
-            # wkt = "SRID=" + self.srid + ";POINTZ(" + self.x + " " + self.y + " " + self.z + ")"
-            wkt = "<https://epsg.io/" + self.srid + "> " \
-                  "POINTZ(" + self.x + " " + self.y + " " + self.z + ")"
-        else:
-            # wkt = "SRID=" + self.srid + ";POINT(" + self.x + " " + self.y + ")"
-            if self.srid is not None and self.x is not None and self.y is not None:
-                wkt = "<https://epsg.io/" + self.srid + "> POINT(" + self.x + " " + self.y + ")"
-            else:
-                wkt = ''
-
-        return wkt
-
     def _generate_survey_gml(self):
         if self.z is not None:
             gml = '<gml:Point srsDimension="3" srsName="https://epsg.io/' + self.srid + '">' \
@@ -220,7 +219,7 @@ class SurveyRenderer:
 
         return gml
 
-    def export_as_rdf(self, model_view='default', rdf_mime='text/turtle'):
+    def export_rdf(self, model_view='default', rdf_mime='text/turtle'):
         """
         Exports this instance in RDF, according to a given model from the list of supported models,
         in a given rdflib RDF mimetype
@@ -257,13 +256,41 @@ class SurveyRenderer:
         # Activity properties
         # TODO: add in label, startedAtTime, endedAtTime, atLocation
 
-        # define GA as an PROV Org with an ISO19115 role of Publisher
+        # Agents
+        contractor = BNode()
+        contractor_agent = BNode()
+        g.add((contractor_agent, RDF.type, PROV.Agent))
+        g.add((contractor, RDF.type, PROV.Attribution))
+        g.add((contractor, PROV.agent, contractor_agent))
+        g.add((contractor, PROV.hadRole, AUROLE.PrincipalInvestigator))
+        g.add((contractor_agent, RDFS.label, Literal(self.contractor, datatype=XSD.string)))
+        g.add((this_survey, PROV.qualifiedAttribution, contractor))
+
+        operator = BNode()
+        operator_agent = BNode()
+        g.add((operator_agent, RDF.type, PROV.Agent))
+        g.add((operator, RDF.type, PROV.Attribution))
+        g.add((operator, PROV.agent, operator_agent))
+        g.add((operator, PROV.hadRole, AUROLE.Sponsor))
+        g.add((operator_agent, RDFS.label, Literal(self.operator, datatype=XSD.string)))
+        g.add((this_survey, PROV.qualifiedAttribution, operator))
+
+        processor = BNode()
+        processor_agent = BNode()
+        g.add((processor_agent, RDF.type, PROV.Agent))
+        g.add((processor, RDF.type, PROV.Attribution))
+        g.add((processor, PROV.agent, processor_agent))
+        g.add((processor, PROV.hadRole, AUROLE.Processor))
+        g.add((processor_agent, RDFS.label, Literal(self.processor, datatype=XSD.string)))
+        g.add((this_survey, PROV.qualifiedAttribution, processor))
+
+        publisher = BNode()
         g.add((ga, RDF.type, PROV.Org))
-        qualified_attribution = BNode()
-        g.add((qualified_attribution, RDF.type, PROV.Attribution))
-        g.add((qualified_attribution, PROV.agent, ga))
-        g.add((qualified_attribution, PROV.hadRole, AUROLE.Publisher))
-        g.add((this_survey, PROV.qualifiedAttribution, qualified_attribution))
+        g.add((publisher, RDF.type, PROV.Attribution))
+        g.add((publisher, PROV.agent, ga))
+        g.add((publisher, PROV.hadRole, AUROLE.Publisher))
+        g.add((ga, RDFS.label, Literal("Geoscience Australia", datatype=XSD.string)))
+        g.add((this_survey, PROV.qualifiedAttribution, publisher))
 
         # TODO: add in other Agents
 
@@ -272,14 +299,12 @@ class SurveyRenderer:
         g.bind('samfl', SAMFL)
 
         # Survey location in GML & WKT, formulation from GeoSPARQL
-        wkt = Literal(self._generate_survey_wkt(), datatype=GEOSP.wktLiteral)
-        gml = Literal(self._generate_survey_gml(), datatype=GEOSP.gmlLiteral)
 
         geometry = BNode()
         g.add((this_survey, PROV.hadLocation, geometry))
         g.add((geometry, RDF.type, SAMFL.Polygon))
-        g.add((geometry, GEOSP.asGML, gml))
-        g.add((geometry, GEOSP.asWKT, wkt))
+        # g.add((geometry, GEOSP.asGML, gml))
+        g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
 
         # select model view
         if model_view == 'gapd':
@@ -293,12 +318,134 @@ class SurveyRenderer:
 
             # TODO: add in other Survey properties
         elif model_view == 'prov':
-            # nothing to do here as all PROV-O parts already created
-            pass
+            # redundant relationships just for SVG viewing
+
+            # TODO: add in a recognition of Agent roles for the graph
+            g.add((this_survey, RDFS.label, Literal('Survey ' + self.survey_id, datatype=XSD.string)))
+            g.add((ga, RDF.type, PROV.Agent))
+            g.add((this_survey, PROV.wasAssociatedWith, contractor_agent))
+            g.add((this_survey, PROV.wasAssociatedWith, operator_agent))
+            g.add((this_survey, PROV.wasAssociatedWith, processor_agent))
+            g.add((this_survey, PROV.wasAssociatedWith, ga))
 
         return g.serialize(format=LDAPI.get_rdf_parser_for_mimetype(rdf_mime))
 
-    def export_as_html(self, model_view='gapd'):
+    def __graph_preconstruct(self, g):
+        u = '''
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            DELETE {
+                ?a prov:generated ?e .
+            }
+            INSERT {
+                ?e prov:wasGeneratedBy ?a .
+            }
+            WHERE {
+                ?a prov:generated ?e .
+            }
+        '''
+        g.update(u)
+
+        return g
+
+    def __gen_visjs_nodes(self, g):
+        nodes = ''
+
+        q = '''
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            SELECT *
+            WHERE {
+                ?s a ?o .
+                {?s a prov:Entity .}
+                UNION
+                {?s a prov:Activity .}
+                UNION
+                {?s a prov:Agent .}
+                OPTIONAL {?s rdfs:label ?label .}
+            }
+            '''
+        for row in g.query(q):
+            if str(row['o']) == 'http://www.w3.org/ns/prov#Entity':
+                if row['label'] is not None:
+                    label = row['label']
+                else:
+                    label = 'Entity'
+                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", shape: "ellipse", color:{background:"#FFFC87", border:"#808080"}},\n' % {
+                    'node_id': row['s'],
+                    'label': label
+                }
+            elif str(row['o']) == 'http://www.w3.org/ns/prov#Activity':
+                if row['label'] is not None:
+                    label = row['label']
+                else:
+                    label = 'Activity'
+                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", shape: "box", color:{background:"#9FB1FC", border:"blue"}},\n' % {
+                    'node_id': row['s'],
+                    'label': label
+                }
+            elif str(row['o']) == 'http://www.w3.org/ns/prov#Agent':
+                if row['label'] is not None:
+                    label = row['label']
+                else:
+                    label = 'Agent'
+                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", image: "/static/img/agent.png", shape: "image"},\n' % {
+                    'node_id': row['s'],
+                    'label': label
+                }
+
+        return nodes
+
+    def __gen_visjs_edges(self, g):
+        edges = ''
+
+        q = '''
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            SELECT *
+            WHERE {
+                ?s ?p ?o .
+                ?s prov:wasAttributedTo|prov:wasGeneratedBy|prov:used|prov:wasDerivedFrom|prov:wasInformedBy|prov:wasAssociatedWith ?o .
+            }
+            '''
+        for row in g.query(q):
+            edges += '\t\t\t\t{from: "%(from)s", to: "%(to)s", arrows:"to", font: {align: "bottom"}, color:{color:"black"}, label: "%(relationship)s"},\n' % {
+                'from': row['s'],
+                'to': row['o'],
+                'relationship': str(row['p']).split('#')[1]
+            }
+
+        return edges
+
+    def _make_vsjs(self, g):
+        g = self.__graph_preconstruct(g)
+
+        nodes = 'var nodes = new vis.DataSet([\n'
+        nodes += self.__gen_visjs_nodes(g)
+        nodes = nodes.rstrip().rstrip(',') + '\n\t\t\t]);\n'
+
+        edges = 'var edges = new vis.DataSet([\n'
+        edges += self.__gen_visjs_edges(g)
+        edges = edges.rstrip().rstrip(',') + '\n\t\t\t]);\n'
+
+        visjs = '''
+        %(nodes)s
+
+        %(edges)s
+
+        var container = document.getElementById('network');
+
+        var data = {
+            nodes: nodes,
+            edges: edges,
+        };
+
+        var options = {};
+        var network = new vis.Network(container, data, options);
+        ''' % {'nodes': nodes, 'edges': edges}
+
+        return visjs
+
+    def export_html(self, model_view='gapd'):
         """
         Exports this instance in HTML, according to a given model from the list of supported models.
 
@@ -345,8 +492,8 @@ class SurveyRenderer:
         </ROWSET>
         '''
         if model_view == 'gapd':
-            return render_template(
-                'page_survey.html',
+            view_html = render_template(
+                'survey_gapd.html',
                 survey_id=self.survey_id,
                 survey_name=self.survey_name,
                 state=self.state,
@@ -361,16 +508,12 @@ class SurveyRenderer:
                 onshore_offshore=self.onshore_offshore,
                 start_date=self.start_date,
                 end_date=self.end_date,
-                w_long=self.w_long,
-                e_long=self.e_long,
-                s_lat=self.s_lat,
-                n_lat=self.n_lat,
                 line_km=self.line_km,
                 total_km=self.total_km,
                 line_spacing=self.line_spacing,
                 line_direction=self.line_direction,
                 tie_spacing=self.tie_spacing,
-                square_km=self.square_km,
+                area=self.square_km,
                 crystal_volume=self.crystal_volume,
                 up_crystal_volume=self.up_crystal_volume,
                 digital_data=self.digital_data,
@@ -379,18 +522,26 @@ class SurveyRenderer:
                 agl=self.agl,
                 mag_instrument=self.mag_instrument,
                 rad_instrument=self.rad_instrument,
-                srid=self.srid
+                wkt_polygon=self.wkt_polygon
+            )
+        elif model_view == 'prov':
+            prov_turtle = self.export_rdf('prov', 'text/turtle')
+            g = Graph().parse(data=prov_turtle, format='turtle')
+
+            view_html = render_template(
+                'survey_prov.html',
+                visjs=self._make_vsjs(g),
+                prov_turtle=prov_turtle,
             )
 
-    # @staticmethod
-    # def render_template_local(template_filename, **context):
-    #     import os
-    #     PATH = os.path.dirname(os.path.abspath(__file__))
-    #     TEMPLATE_ENVIRONMENT = Environment(
-    #         autoescape=False,
-    #         loader=FileSystemLoader(os.path.join(os.path.dirname(PATH), 'templates')),
-    #         trim_blocks=False)
-    #     return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
+        return render_template(
+            'page_survey.html',
+            view_html=view_html,
+            survey_id=self.survey_id,
+            end_date=self.end_date,
+            survey_type=self.survey_type,
+            date_now=datetime.now().strftime('%Y-%m-%d')
+        )
 
 
 class ParameterError(ValueError):

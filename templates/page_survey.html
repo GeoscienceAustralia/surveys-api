@@ -2,44 +2,8 @@
 
 {% block content %}
     <h1>Survey</h1>
-    <h2>Properties</h2>
-    <p>These properties are those listed in the <a href="http://pid.geoscience.gov.au/def/ont/gapd">GAPD Model</a> of a Survey.</p>
-    <table class="lined">
-        <tr><th>Property</th><th>Value</th></tr>
-        <tr><td>survey_id</td><td>{{ survey_id }}</td></tr>
-        <tr><td>survey_name</td><td>{{ survey_name }}</td></tr>
-        <tr><td>state</td><td>{{ state }}</td></tr>
-        <tr><td>operator</td><td>{{ operator }}</td></tr>
-        <tr><td>contractor</td><td>{{ contractor }}</td></tr>
-        <tr><td>processor</td><td>{{ processor }}</td></tr>
-        <tr><td>survey_type</td><td>{{ survey_type }}</td></tr>
-        <tr><td>data_types</td><td>{{ data_types }}</td></tr>
-        <tr><td>vessel</td><td>{{ vessel }}</td></tr>
-        <tr><td>vessel_type</td><td>{{ vessel_type }}</td></tr>
-        <tr><td>release_date</td><td>{{ release_date }}</td></tr>
-        <tr><td>onshore_offshore</td><td>{{ onshore_offshore }}</td></tr>
-        <tr><td>start_date</td><td>{{ start_date }}</td></tr>
-        <tr><td>end_date</td><td>{{ end_date }}</td></tr>
-        <tr><td>w_long</td><td>{{ w_long }}</td></tr>
-        <tr><td>e_long</td><td>{{ e_long }}</td></tr>
-        <tr><td>s_lat</td><td>{{ s_lat }}</td></tr>
-        <tr><td>n_lat</td><td>{{ n_lat }}</td></tr>
-        <tr><td>line_km</td><td>{{ line_km }}</td></tr>
-        <tr><td>total_km</td><td>{{ total_km }}</td></tr>
-        <tr><td>line_spacing</td><td>{{ line_spacing }}</td></tr>
-        <tr><td>line_direction</td><td>{{ line_direction }}</td></tr>
-        <tr><td>tie_spacing</td><td>{{ tie_spacing }}</td></tr>
-        <tr><td>square_km</td><td>{{ square_km }}</td></tr>
-        <tr><td>crystal_volume</td><td>{{ crystal_volume }}</td></tr>
-        <tr><td>up_crystal_volume</td><td>{{ up_crystal_volume }}</td></tr>
-        <tr><td>digital_data</td><td>{{ digital_data }}</td></tr>
-        <tr><td>geodetic_datum</td><td>{{ geodetic_datum }}</td></tr>
-        <tr><td>asl</td><td>{{ asl }}</td></tr>
-        <tr><td>agl</td><td>{{ agl }}</td></tr>
-        <tr><td>mag_instrument</td><td>{{ mag_instrument }}</td></tr>
-        <tr><td>rad_instrument</td><td>{{ rad_instrument }}</td></tr>
-        <tr><td>srid</td><td>{{ srid }}</td></tr>
-    </table>
+    {{ view_html|safe }}
+
     <h2>Other views</h2>
     <p>Other model views of a Survey are listed in the <a href="{{ url_for('model_classes.survey', survey_id=survey_id) }}?_view=alternates">Alternates View</a>.</p>
 
