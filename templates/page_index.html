@@ -5,17 +5,21 @@
     <h2>About</h2>
     <p>This home page of the GA Samples Linked Data API is intended to provide basic information about this API (or 'Web Service'). In addition to this page, here are other sources of information about this service:</p>
     <ul>
-        <li><a href="">this service's entry</a> in the main Geoscience Australia catalogue, <a href="http://ecat.ge.gov.au/geonetwork/">eCat</a></li>
-        <li>an <a href="http://www.opengeospatial.org/">OGC</a>, <a href="http://www.opengeospatial.org/standards/wms">WMS web service standard</a> <em>GetCapabilities</em>-like XML descriptor: <a href="{{ url_for('routes.index') }}?_view=getcapabilities&_format=text/xml">{{ url_for('routes.index') }}?_view=getcapabilities&_format=text/xml</a></li>
+        <li>this service's <a href="http://pid.geoscience.gov.au/dataset/110081">software entry</a> in the main Geoscience Australia catalogue, <a href="http://ecat.ga.gov.au/geonetwork/">eCat</a></li>
         <li>this system's <a href="http://github.com/geoscienceaustralia/surveys-api">git code repository</a></li>
+        <li>the Epimorphics <a href="https://github.com/UKGovLD/linked-data-api">Linked Data API</a> that this API is derived from</li>
+        <li>this service's <a href="http://pid.geoscience.gov.au/service/" style="text-decoration: line-through;">instance entry, as a web service</a> (not implemented yet) in the main Geoscience Australia catalogue, <a href="http://ecat.ga.gov.au/geonetwork/">eCat</a></li>
+        <li>an <a href="http://www.opengeospatial.org/">OGC</a>, <a href="http://www.opengeospatial.org/standards/wms">WMS web service standard</a> <em>GetCapabilities</em>-like XML descriptor: <a href="{{ url_for('routes.index') }}?_view=getcapabilities&_format=text/xml">{{ url_for('routes.index') }}?_view=getcapabilities&_format=text/xml</a></li>
     </ul>
     <h2>Surveys</h2>
     <p>The survey Register, linked to above right, is the listing of all Surveys. It can be accessed directly using the URI:</p>
     <ul>
-        <li><a href="http://pid.geoscience.gov.au/survey/">http://pid.geoscience.gov.au/survey/</a></li>
+        <li><a href="http://pid.geoscience.gov.au/survey/" style="text-decoration: line-through;">http://pid.geoscience.gov.au/survey/</a> (not implemented yet) </li>
     </ul>
     <p>Additionally, individual surveys may be accessed using a URI of the following form:</p>
     <ul>
         <li><a href="http://pid.geoscience.gov.au/survey/">http://pid.geoscience.gov.au/survey/{SURVEY_NO}</a> -- the {SURVEY_NO} is an integer number for a particular survey</li>
     </ul>
+    <h2>Contact</h2>
+    <p>To contact parties associated with this system, please see the instance metadata record, linked to above.</p>
 {% endblock %}
