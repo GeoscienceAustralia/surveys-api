@@ -32,6 +32,8 @@ class LDAPI:
 
     @staticmethod
     def get_rdf_parser_for_mimetype(mimetype):
+        if mimetype == 'text/html':  # HTML is the default view so it could appear here
+            mimetype = 'text/turtle'
         return [item[1] for item in LDAPI.MIMETYPES_PARSERS if item[0] == mimetype][0]
 
     @staticmethod

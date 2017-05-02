@@ -8,3 +8,5 @@
 * tidy Survey default view HTML
     * format data as data, not dateTime
     * create one vocab term URI instead of text (vessle: aeroplane, ship etc)
+
+* add default format to classes_view_formats, per view
