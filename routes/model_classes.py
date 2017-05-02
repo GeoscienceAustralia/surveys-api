@@ -58,6 +58,8 @@ def survey(survey_id):
 
 @model_classes.route('/survey/')
 def surveys():
+    # placholder
+    return render_template('page_surveys.html')
     """
     The Register of Samples
 

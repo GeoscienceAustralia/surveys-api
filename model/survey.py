@@ -74,22 +74,21 @@ class SurveyRenderer:
     def render(self, view, mimetype):
         if self.survey_name is None:
             return Response('Survey with ID {} not found.'.format(self.survey_id), status=404, mimetype='text/plain')
+
         if view == 'gapd':
             if mimetype == 'text/html':
                 return self.export_html(model_view=view)
-            else:  # only other legal MIMETYPES are RDF
-                return Response(
-                    self.export_rdf('gapd', mimetype),
-                    mimetype=mimetype
-                )
-        elif view == 'argus':
-            # just return the XML directly from the XML API, no other formats allowed for this view
+            else:
+                return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
+        elif view == 'argus':  # XML only for this view
             return redirect(config.XML_API_URL_SURVEY.format(self.survey_id), code=303)
         elif view == 'prov':
             if mimetype == 'text/html':
                 return self.export_html(model_view=view)
             else:
-                return Response(self.export_rdf('prov', mimetype), mimetype=mimetype)
+                return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
+        elif view == 'sosa':  # RDF only for this view
+            return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
 
     def validate_xml(self, xml):
         parser = etree.XMLParser(dtd_validation=False)
@@ -234,15 +233,6 @@ class SurveyRenderer:
         # things that are applicable to all model views; the graph and some namespaces
         g = Graph()
 
-        GEOSP = Namespace('http://www.opengis.net/ont/geosparql#')
-        g.bind('geosp', GEOSP)
-
-        AUROLE = Namespace('http://communications.data.gov.au/def/role/')
-        g.bind('aurole', AUROLE)
-
-        PROV = Namespace('http://www.w3.org/ns/prov#')
-        g.bind('prov', PROV)
-
         # URI for this survey
         base_uri = 'http://pid.geoscience.gov.au/survey/'
         this_survey = URIRef(base_uri + self.survey_id)
@@ -250,83 +240,169 @@ class SurveyRenderer:
         # define GA
         ga = URIRef(SurveyRenderer.URI_GA)
 
-        # classing the Survey in PROV - relevant to all model options
-        g.add((this_survey, RDF.type, PROV.Activity))
-
-        # Activity properties
-        # TODO: add in label, startedAtTime, endedAtTime, atLocation
-
-        # Agents
-        contractor = BNode()
-        contractor_agent = BNode()
-        g.add((contractor_agent, RDF.type, PROV.Agent))
-        g.add((contractor, RDF.type, PROV.Attribution))
-        g.add((contractor, PROV.agent, contractor_agent))
-        g.add((contractor, PROV.hadRole, AUROLE.PrincipalInvestigator))
-        g.add((contractor_agent, RDFS.label, Literal(self.contractor, datatype=XSD.string)))
-        g.add((this_survey, PROV.qualifiedAttribution, contractor))
-
-        operator = BNode()
-        operator_agent = BNode()
-        g.add((operator_agent, RDF.type, PROV.Agent))
-        g.add((operator, RDF.type, PROV.Attribution))
-        g.add((operator, PROV.agent, operator_agent))
-        g.add((operator, PROV.hadRole, AUROLE.Sponsor))
-        g.add((operator_agent, RDFS.label, Literal(self.operator, datatype=XSD.string)))
-        g.add((this_survey, PROV.qualifiedAttribution, operator))
-
-        processor = BNode()
-        processor_agent = BNode()
-        g.add((processor_agent, RDF.type, PROV.Agent))
-        g.add((processor, RDF.type, PROV.Attribution))
-        g.add((processor, PROV.agent, processor_agent))
-        g.add((processor, PROV.hadRole, AUROLE.Processor))
-        g.add((processor_agent, RDFS.label, Literal(self.processor, datatype=XSD.string)))
-        g.add((this_survey, PROV.qualifiedAttribution, processor))
-
-        publisher = BNode()
-        g.add((ga, RDF.type, PROV.Org))
-        g.add((publisher, RDF.type, PROV.Attribution))
-        g.add((publisher, PROV.agent, ga))
-        g.add((publisher, PROV.hadRole, AUROLE.Publisher))
-        g.add((ga, RDFS.label, Literal("Geoscience Australia", datatype=XSD.string)))
-        g.add((this_survey, PROV.qualifiedAttribution, publisher))
-
-        # TODO: add in other Agents
-
-        # Geometry
-        SAMFL = Namespace('http://def.seegrid.csiro.au/ontology/om/sam-lite#')
-        g.bind('samfl', SAMFL)
-
-        # Survey location in GML & WKT, formulation from GeoSPARQL
-
-        geometry = BNode()
-        g.add((this_survey, PROV.hadLocation, geometry))
-        g.add((geometry, RDF.type, SAMFL.Polygon))
-        # g.add((geometry, GEOSP.asGML, gml))
-        g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
-
         # select model view
-        if model_view == 'gapd':
+        if model_view == 'gapd' or model_view == 'prov':
+            PROV = Namespace('http://www.w3.org/ns/prov#')
+            g.bind('prov', PROV)
+
+            g.add((this_survey, RDF.type, PROV.Activity))
+
+            GEOSP = Namespace('http://www.opengis.net/ont/geosparql#')
+            g.bind('geosp', GEOSP)
+
+            AUROLE = Namespace('http://communications.data.gov.au/def/role/')
+            g.bind('aurole', AUROLE)
+
             # default model is the GAPD model
-            # DAPD model required namespaces
-            GAPD = Namespace('http://pid.geoscience.gov.au/def/ont/gapd#')
-            g.bind('gapd', GAPD)
+            # Activity properties
+            # TODO: add in label, startedAtTime, endedAtTime, atLocation
 
-            # classing the Survey in GAPD
-            g.add((this_survey, RDF.type, GAPD.PublicSurvey))
+            # Agents
+            contractor = BNode()
+            contractor_agent = BNode()
+            g.add((contractor_agent, RDF.type, PROV.Agent))
+            g.add((contractor, RDF.type, PROV.Attribution))
+            g.add((contractor, PROV.agent, contractor_agent))
+            g.add((contractor, PROV.hadRole, AUROLE.PrincipalInvestigator))
+            g.add((contractor_agent, RDFS.label, Literal(self.contractor, datatype=XSD.string)))
+            g.add((this_survey, PROV.qualifiedAttribution, contractor))
 
-            # TODO: add in other Survey properties
-        elif model_view == 'prov':
-            # redundant relationships just for SVG viewing
+            operator = BNode()
+            operator_agent = BNode()
+            g.add((operator_agent, RDF.type, PROV.Agent))
+            g.add((operator, RDF.type, PROV.Attribution))
+            g.add((operator, PROV.agent, operator_agent))
+            g.add((operator, PROV.hadRole, AUROLE.Sponsor))
+            g.add((operator_agent, RDFS.label, Literal(self.operator, datatype=XSD.string)))
+            g.add((this_survey, PROV.qualifiedAttribution, operator))
 
-            # TODO: add in a recognition of Agent roles for the graph
-            g.add((this_survey, RDFS.label, Literal('Survey ' + self.survey_id, datatype=XSD.string)))
-            g.add((ga, RDF.type, PROV.Agent))
-            g.add((this_survey, PROV.wasAssociatedWith, contractor_agent))
-            g.add((this_survey, PROV.wasAssociatedWith, operator_agent))
-            g.add((this_survey, PROV.wasAssociatedWith, processor_agent))
-            g.add((this_survey, PROV.wasAssociatedWith, ga))
+            processor = BNode()
+            processor_agent = BNode()
+            g.add((processor_agent, RDF.type, PROV.Agent))
+            g.add((processor, RDF.type, PROV.Attribution))
+            g.add((processor, PROV.agent, processor_agent))
+            g.add((processor, PROV.hadRole, AUROLE.Processor))
+            g.add((processor_agent, RDFS.label, Literal(self.processor, datatype=XSD.string)))
+            g.add((this_survey, PROV.qualifiedAttribution, processor))
+
+            publisher = BNode()
+            g.add((ga, RDF.type, PROV.Org))
+            g.add((publisher, RDF.type, PROV.Attribution))
+            g.add((publisher, PROV.agent, ga))
+            g.add((publisher, PROV.hadRole, AUROLE.Publisher))
+            g.add((ga, RDFS.label, Literal("Geoscience Australia", datatype=XSD.string)))
+            g.add((this_survey, PROV.qualifiedAttribution, publisher))
+
+            # TODO: add in other Agents
+
+            if model_view == 'gapd':
+                # Geometry
+                SAMFL = Namespace('http://def.seegrid.csiro.au/ontology/om/sam-lite#')
+                g.bind('samfl', SAMFL)
+
+                # Survey location in GML & WKT, formulation from GeoSPARQL
+
+                geometry = BNode()
+                g.add((this_survey, PROV.hadLocation, geometry))
+                g.add((geometry, RDF.type, SAMFL.Polygon))
+                # g.add((geometry, GEOSP.asGML, gml))
+                g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
+
+                # GAPD model required namespaces
+                GAPD = Namespace('http://pid.geoscience.gov.au/def/ont/gapd#')
+                g.bind('gapd', GAPD)
+
+                # classing the Survey in GAPD
+                g.add((this_survey, RDF.type, GAPD.PublicSurvey))
+
+                # TODO: add in other Survey properties
+            elif model_view == 'prov':
+                # redundant relationships just for SVG viewing
+                # TODO: add in a recognition of Agent roles for the graph
+                g.add((this_survey, RDFS.label, Literal('Survey ' + self.survey_id, datatype=XSD.string)))
+                g.add((ga, RDF.type, PROV.Agent))
+                g.add((this_survey, PROV.wasAssociatedWith, contractor_agent))
+                g.add((this_survey, PROV.wasAssociatedWith, operator_agent))
+                g.add((this_survey, PROV.wasAssociatedWith, processor_agent))
+                g.add((this_survey, PROV.wasAssociatedWith, ga))
+        elif model_view == 'sosa':
+            SOSA = Namespace('http://www.w3.org/ns/sosa/')
+            g.bind('sosa', SOSA)
+
+            # Sampling
+            g.add((this_survey, RDF.type, SOSA.Sampling))
+            TIME = Namespace('http://www.w3.org/2006/time#')
+            g.bind('time', TIME)
+
+            if self.start_date is not None and self.end_date is not None:
+                rt = BNode()
+                g.add((rt, RDF.type, TIME.ProperInterval))
+
+                start = BNode()
+                g.add((start, RDF.type, TIME.ProperInterval))
+                g.add((start, TIME.inXSDDateTime, Literal(self.start_date.date(), datatype=XSD.date)))
+                g.add((rt, TIME.intervalStarts, start))
+                finish = BNode()
+                g.add((finish, RDF.type, TIME.ProperInterval))
+                g.add((finish, TIME.inXSDDateTime, Literal(self.end_date.date(), datatype=XSD.date)))
+                g.add((rt, TIME.intervalFinishes, finish))
+
+                g.add((this_survey, SOSA.resultTime, rt))  # associate
+
+            elif self.start_date is not None:
+                rt = BNode()
+                g.add((rt, RDF.type, TIME.Instant))
+                g.add((rt, TIME.inXSDDateTime, Literal(self.start_date.date(), datatype=XSD.date)))
+                g.add((this_survey, SOSA.resultTime, rt))  # associate
+
+            # Platform  # TODO: add lookup for 'Plane' etc to a vessel type vocab
+            platform = BNode()
+            g.add((platform, RDF.type, URIRef('http://pid.geoscience.gov.au/platform/' + self.vessel_type)))
+            g.add((platform, RDFS.subClassOf, SOSA.Platform))
+            g.add((platform, RDFS.label, Literal(self.vessel, datatype=XSD.string)))
+
+            # Sampler
+            if self.mag_instrument is not None:
+                sampler_mag = BNode()
+                g.add((sampler_mag, RDF.type, URIRef(self.mag_instrument)))
+                g.add((sampler_mag, RDFS.subClassOf, SOSA.Sampler))
+                g.add((sampler_mag, SOSA.madeSampling, this_survey))  # associate # TODO: resolve double madeSampling
+                g.add((sampler_mag, SOSA.isHostedBy, platform))  # associate
+
+            if self.rad_instrument is not None:
+                sampler_rad = BNode()
+                g.add((sampler_rad, RDF.type, URIRef(self.rad_instrument)))
+                g.add((sampler_rad, RDFS.subClassOf, SOSA.Sampler))
+                g.add((sampler_rad, SOSA.madeSampling, this_survey))  # associate
+                g.add((sampler_rad, SOSA.isHostedBy, platform))  # associate
+
+            if self.mag_instrument is None and self.rad_instrument is None:
+                sampler = BNode()
+                g.add((sampler, RDF.type, SOSA.Sampler))
+                g.add((sampler, SOSA.isHostedBy, platform))  # associate
+
+            # FOI
+            foi = URIRef('http://pid.geoscience.gov.au/feature/earthSusbsurface')
+            g.add((foi, RDFS.label, Literal('Earth Subsurface', datatype=XSD.string)))
+            g.add((foi, RDFS.comment, Literal('Below the earth\'s terrestrial surface', datatype=XSD.string)))
+            g.add((this_survey, SOSA.hasFeatureOfInterest, foi))  # associate
+
+            # Sample
+            sample = BNode()
+            g.add((sample, RDF.type, SOSA.Sample))
+            g.add((this_survey, SOSA.hasResultingSample, sample))  # associate
+            g.add((foi, SOSA.hasSample, sample))  # associate with FOI
+
+            # Sample geometry
+            SAMFL = Namespace('http://def.seegrid.csiro.au/ontology/om/sam-lite#')
+            g.bind('samfl', SAMFL)
+            GEOSP = Namespace('http://www.opengis.net/ont/geosparql#')
+            g.bind('geosp', GEOSP)
+            geometry = BNode()
+            g.add((geometry, RDF.type, SAMFL.Polygon))
+            g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
+            g.add((sample, GEOSP.hasGeometry, geometry))  # associate
+
 
         return g.serialize(format=LDAPI.get_rdf_parser_for_mimetype(rdf_mime))
 
