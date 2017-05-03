@@ -335,25 +335,24 @@ class SurveyRenderer:
             g.bind('time', TIME)
 
             if self.start_date is not None and self.end_date is not None:
-                rt = BNode()
-                g.add((rt, RDF.type, TIME.ProperInterval))
+                t = BNode()
+                g.add((t, RDF.type, TIME.ProperInterval))
 
                 start = BNode()
-                g.add((start, RDF.type, TIME.ProperInterval))
+                g.add((start, RDF.type, TIME.Instant))
                 g.add((start, TIME.inXSDDateTime, Literal(self.start_date.date(), datatype=XSD.date)))
-                g.add((rt, TIME.intervalStarts, start))
+                g.add((t, TIME.hasBeginning, start))
                 finish = BNode()
-                g.add((finish, RDF.type, TIME.ProperInterval))
+                g.add((finish, RDF.type, TIME.Instant))
                 g.add((finish, TIME.inXSDDateTime, Literal(self.end_date.date(), datatype=XSD.date)))
-                g.add((rt, TIME.intervalFinishes, finish))
-
-                g.add((this_survey, SOSA.resultTime, rt))  # associate
+                g.add((t, TIME.hasEnd, finish))
+                g.add((this_survey, TIME.hasTime, t))  # associate
 
             elif self.start_date is not None:
-                rt = BNode()
-                g.add((rt, RDF.type, TIME.Instant))
-                g.add((rt, TIME.inXSDDateTime, Literal(self.start_date.date(), datatype=XSD.date)))
-                g.add((this_survey, SOSA.resultTime, rt))  # associate
+                t = BNode()
+                g.add((t, RDF.type, TIME.Instant))
+                g.add((t, TIME.inXSDDateTime, Literal(self.start_date.date(), datatype=XSD.date)))
+                g.add((this_survey, TIME.hasTime, t))  # associate
 
             # Platform  # TODO: add lookup for 'Plane' etc to a vessel type vocab
             platform = BNode()
@@ -390,16 +389,14 @@ class SurveyRenderer:
             # Sample
             sample = BNode()
             g.add((sample, RDF.type, SOSA.Sample))
-            g.add((this_survey, SOSA.hasResultingSample, sample))  # associate
+            g.add((this_survey, SOSA.hasResulting, sample))  # associate
             g.add((foi, SOSA.hasSample, sample))  # associate with FOI
 
             # Sample geometry
-            SAMFL = Namespace('http://def.seegrid.csiro.au/ontology/om/sam-lite#')
-            g.bind('samfl', SAMFL)
             GEOSP = Namespace('http://www.opengis.net/ont/geosparql#')
             g.bind('geosp', GEOSP)
             geometry = BNode()
-            g.add((geometry, RDF.type, SAMFL.Polygon))
+            g.add((geometry, RDF.type, GEOSP.Geometry))
             g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
             g.add((sample, GEOSP.hasGeometry, geometry))  # associate
 
