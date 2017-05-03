@@ -389,7 +389,7 @@ class SurveyRenderer:
             # Sample
             sample = BNode()
             g.add((sample, RDF.type, SOSA.Sample))
-            g.add((this_survey, SOSA.hasResulting, sample))  # associate
+            g.add((this_survey, SOSA.hasResult, sample))  # associate
             g.add((foi, SOSA.hasSample, sample))  # associate with FOI
 
             # Sample geometry
