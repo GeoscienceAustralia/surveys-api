@@ -1,4 +1,4 @@
-APP_DIR = 'c:/work/surveys-api/'
+APP_DIR = '/Users/car587/work/surveys-api/'
 LOGFILE = APP_DIR + 'surveys-api.log'
 DEBUG = True
 

@@ -1,10 +1,10 @@
-from renderer import Renderer
+from .renderer import Renderer
 from flask import Response, render_template
 from rdflib import Graph, URIRef, RDF, RDFS, XSD, Namespace, Literal
-from ldapi import LDAPI
+from ldapi.ldapi import LDAPI
 from lxml import etree
 import requests
-from StringIO import StringIO
+from io import BytesIO
 import config
 
 
@@ -67,7 +67,7 @@ class RegisterRenderer(Renderer):
             etree.fromstring(xml, parser)
             return True
         except Exception:
-            print 'not valid xml'
+            print('not valid xml')
             return False
 
     def _get_details_from_oracle_api(self, page, per_page):
@@ -82,7 +82,7 @@ class RegisterRenderer(Renderer):
         xml = r.content
 
         if self.validate_xml(xml):
-            self._get_details_from_file(StringIO(xml))
+            self._get_details_from_file(BytesIO(xml))
             return True
         else:
             return False

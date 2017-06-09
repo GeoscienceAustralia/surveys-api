@@ -8,7 +8,7 @@ from flask import Response, render_template, redirect
 import config
 
 
-class SurveyRenderer:
+class EntityRenderer:
     """
     This class represents a Survey and methods in this class allow one to be loaded from GA's internal Oracle
     ARGUS database and to be exported in a number of mimetypes including RDF, according to the 'GA Public Data Ontology'
@@ -19,58 +19,10 @@ class SurveyRenderer:
     URI_INAPPLICABLE = 'http://www.opengis.net/def/nil/OGC/0/inapplicable'
     URI_GA = 'http://pid.geoscience.gov.au/org/ga'
 
-    def __init__(self, survey_id):
-        self.survey_id = survey_id
-        self.survey_name = None
-        self.state = None
-        self.operator = None
-        self.contractor = None
-        self.processor = None
-        self.survey_type = None
-        self.data_types = None
-        self.vessel = None
-        self.vessel_type = None
-        self.release_date = None
-        self.onshore_offshore = None
-        self.start_date = None
-        self.end_date = None
-        self.w_long = None
-        self.e_long = None
-        self.s_lat = None
-        self.n_lat = None
-        self.line_km = None
-        self.total_km = None
-        self.line_spacing = None
-        self.line_direction = None
-        self.tie_spacing = None
-        self.square_km = None
-        self.crystal_volume = None
-        self.up_crystal_volume = None
-        self.digital_data = None
-        self.geodetic_datum = None
-        self.asl = None
-        self.agl = None
-        self.mag_instrument = None
-        self.rad_instrument = None
+    def __init__(self, entity_id):
+        self.entity_id = entity_id
+        self.entity_name = None
 
-        self.srid = 8311  # TODO: replace this magic number with a value from the DB
-
-        # populate all instance variables from API
-        # TODO: lazy load this, i.e. only populate if a view that need populating is loaded which is every view except for Alternates
-        self._populate_from_oracle_api(survey_id)
-
-        self.wkt_polygon = 'SRID={};POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(
-            self.srid,
-            self.w_long, self.n_lat,
-            self.e_long, self.n_lat,
-            self.e_long, self.s_lat,
-            self.e_long, self.s_lat,
-            self.w_long, self.n_lat
-        )
-
-        # clean-up required vars
-        if self.end_date is None:
-            self.end_date = datetime(1900, 1, 1)
 
     def render(self, view, mimetype):
         if self.survey_name is None:
@@ -128,48 +80,7 @@ class SurveyRenderer:
         :param xml: XML according to GA's Oracle XML API from the Samples DB
         :return: None
         """
-        '''
-        example from API: http://www.ga.gov.au/www/argus.argus_api.survey?pSurveyNo=921
-
-        <?xml version="1.0" ?>
-        <ROWSET>
-            <ROW>
-                <SURVEYID>921</SURVEYID>
-                <SURVEYNAME>Goomalling, WA, 1996</SURVEYNAME>
-                <STATE>WA</STATE>
-                <OPERATOR>Stockdale Prospecting Ltd.</OPERATOR>
-                <CONTRACTOR>Kevron Geophysics Pty Ltd</CONTRACTOR>
-                <PROCESSOR>Kevron Geophysics Pty Ltd</PROCESSOR>
-                <SURVEY_TYPE>Detailed</SURVEY_TYPE>
-                <DATATYPES>MAG,RAL,ELE</DATATYPES>
-                <VESSEL>Aero Commander</VESSEL>
-                <VESSEL_TYPE>Plane</VESSEL_TYPE>
-                <RELEASEDATE/>
-                <ONSHORE_OFFSHORE>Onshore</ONSHORE_OFFSHORE>
-                <STARTDATE>05-DEC-96</STARTDATE>
-                <ENDDATE>22-DEC-96</ENDDATE>
-                <WLONG>116.366662</WLONG>
-                <ELONG>117.749996</ELONG>
-                <SLAT>-31.483336</SLAT>
-                <NLAT>-30.566668</NLAT>
-                <LINE_KM>35665</LINE_KM>
-                <TOTAL_KM/>
-                <LINE_SPACING>250</LINE_SPACING>
-                <LINE_DIRECTION>180</LINE_DIRECTION>
-                <TIE_SPACING/>
-                <SQUARE_KM/>
-                <CRYSTAL_VOLUME>33.6</CRYSTAL_VOLUME>
-                <UP_CRYSTAL_VOLUME>4.2</UP_CRYSTAL_VOLUME>
-                <DIGITAL_DATA>MAG,RAL,ELE</DIGITAL_DATA>
-                <GEODETIC_DATUM>WGS84</GEODETIC_DATUM>
-                <ASL/>
-                <AGL>60</AGL>
-                <MAG_INSTRUMENT>Scintrex CS2</MAG_INSTRUMENT>
-                <RAD_INSTRUMENT>Exploranium GR820</RAD_INSTRUMENT>
-            </ROW>
-        </ROWSET>
-        '''
-        # turn the XML doc into a Python object
+         # turn the XML doc into a Python object
         root = objectify.fromstring(xml)
 
         self.survey_name = root.ROW.SURVEYNAME if root.ROW.SURVEYNAME != '' else None
@@ -401,123 +312,8 @@ class SurveyRenderer:
             g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
             g.add((sample, GEOSP.hasGeometry, geometry))  # associate
 
+
         return g.serialize(format=LDAPI.get_rdf_parser_for_mimetype(rdf_mime))
-
-    # TODO: split these RDF --> SVG parts into a stand-alone module
-    def __graph_preconstruct(self, g):
-        u = '''
-            PREFIX prov: <http://www.w3.org/ns/prov#>
-            DELETE {
-                ?a prov:generated ?e .
-            }
-            INSERT {
-                ?e prov:wasGeneratedBy ?a .
-            }
-            WHERE {
-                ?a prov:generated ?e .
-            }
-        '''
-        g.update(u)
-
-        return g
-
-    def __gen_visjs_nodes(self, g):
-        nodes = ''
-
-        q = '''
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX prov: <http://www.w3.org/ns/prov#>
-            SELECT *
-            WHERE {
-                ?s a ?o .
-                {?s a prov:Entity .}
-                UNION
-                {?s a prov:Activity .}
-                UNION
-                {?s a prov:Agent .}
-                OPTIONAL {?s rdfs:label ?label .}
-            }
-            '''
-        for row in g.query(q):
-            if str(row['o']) == 'http://www.w3.org/ns/prov#Entity':
-                if row['label'] is not None:
-                    label = row['label']
-                else:
-                    label = 'Entity'
-                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", shape: "ellipse", color:{background:"#FFFC87", border:"#808080"}},\n' % {
-                    'node_id': row['s'],
-                    'label': label
-                }
-            elif str(row['o']) == 'http://www.w3.org/ns/prov#Activity':
-                if row['label'] is not None:
-                    label = row['label']
-                else:
-                    label = 'Activity'
-                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", shape: "box", color:{background:"#9FB1FC", border:"blue"}},\n' % {
-                    'node_id': row['s'],
-                    'label': label
-                }
-            elif str(row['o']) == 'http://www.w3.org/ns/prov#Agent':
-                if row['label'] is not None:
-                    label = row['label']
-                else:
-                    label = 'Agent'
-                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", image: "/static/img/agent.png", shape: "image"},\n' % {
-                    'node_id': row['s'],
-                    'label': label
-                }
-
-        return nodes
-
-    def __gen_visjs_edges(self, g):
-        edges = ''
-
-        q = '''
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX prov: <http://www.w3.org/ns/prov#>
-            SELECT *
-            WHERE {
-                ?s ?p ?o .
-                ?s prov:wasAttributedTo|prov:wasGeneratedBy|prov:used|prov:wasDerivedFrom|prov:wasInformedBy|prov:wasAssociatedWith ?o .
-            }
-            '''
-        for row in g.query(q):
-            edges += '\t\t\t\t{from: "%(from)s", to: "%(to)s", arrows:"to", font: {align: "bottom"}, color:{color:"black"}, label: "%(relationship)s"},\n' % {
-                'from': row['s'],
-                'to': row['o'],
-                'relationship': str(row['p']).split('#')[1]
-            }
-
-        return edges
-
-    def _make_vsjs(self, g):
-        g = self.__graph_preconstruct(g)
-
-        nodes = 'var nodes = new vis.DataSet([\n'
-        nodes += self.__gen_visjs_nodes(g)
-        nodes = nodes.rstrip().rstrip(',') + '\n\t\t\t]);\n'
-
-        edges = 'var edges = new vis.DataSet([\n'
-        edges += self.__gen_visjs_edges(g)
-        edges = edges.rstrip().rstrip(',') + '\n\t\t\t]);\n'
-
-        visjs = '''
-        %(nodes)s
-
-        %(edges)s
-
-        var container = document.getElementById('network');
-
-        var data = {
-            nodes: nodes,
-            edges: edges,
-        };
-
-        var options = {};
-        var network = new vis.Network(container, data, options);
-        ''' % {'nodes': nodes, 'edges': edges}
-
-        return visjs
 
     def export_html(self, model_view='gapd'):
         """
@@ -526,45 +322,6 @@ class SurveyRenderer:
         :param model_view: string of one of the model view names available for survey objects
         :return: HTML string
         """
-        '''
-        <?xml version="1.0" ?>
-        <ROWSET>
-         <ROW>
-          <SURVEYID>921</SURVEYID>
-          <SURVEYNAME>Goomalling, WA, 1996</SURVEYNAME>
-          <STATE>WA</STATE>
-          <OPERATOR>Stockdale Prospecting Ltd.</OPERATOR>
-          <CONTRACTOR>Kevron Geophysics Pty Ltd</CONTRACTOR>
-          <PROCESSOR>Kevron Geophysics Pty Ltd</PROCESSOR>
-          <SURVEY_TYPE>Detailed</SURVEY_TYPE>
-          <DATATYPES>MAG,RAL,ELE</DATATYPES>
-          <VESSEL>Aero Commander</VESSEL>
-          <VESSEL_TYPE>Plane</VESSEL_TYPE>
-          <RELEASEDATE/>
-          <ONSHORE_OFFSHORE>Onshore</ONSHORE_OFFSHORE>
-          <STARTDATE>05-DEC-96</STARTDATE>
-          <ENDDATE>22-DEC-96</ENDDATE>
-          <WLONG>116.366662</WLONG>
-          <ELONG>117.749996</ELONG>
-          <SLAT>-31.483336</SLAT>
-          <NLAT>-30.566668</NLAT>
-          <LINE_KM>35665</LINE_KM>
-          <TOTAL_KM/>
-          <LINE_SPACING>250</LINE_SPACING>
-          <LINE_DIRECTION>180</LINE_DIRECTION>
-          <TIE_SPACING/>
-          <SQUARE_KM/>
-          <CRYSTAL_VOLUME>33.6</CRYSTAL_VOLUME>
-          <UP_CRYSTAL_VOLUME>4.2</UP_CRYSTAL_VOLUME>
-          <DIGITAL_DATA>MAG,RAL,ELE</DIGITAL_DATA>
-          <GEODETIC_DATUM>WGS84</GEODETIC_DATUM>
-          <ASL/>
-          <AGL>60</AGL>
-          <MAG_INSTRUMENT>Scintrex CS2</MAG_INSTRUMENT>
-          <RAD_INSTRUMENT>Exploranium GR820</RAD_INSTRUMENT>
-         </ROW>
-        </ROWSET>
-        '''
         if model_view == 'gapd':
             view_html = render_template(
                 'survey_gapd.html',
@@ -633,5 +390,5 @@ if __name__ == '__main__':
         survey_views_mimetypes
     )
     import config
-    s = SurveyRenderer(921)
+    s = EntityRenderer(921)
     print(s.render(v, f))
