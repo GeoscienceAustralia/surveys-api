@@ -6,6 +6,7 @@ from routes import routes_functions
 from ldapi.ldapi import LDAPI, LdapiParameterError
 from routes import model_classes_functions
 import urllib
+from urllib.parse import urlparse
 import config
 import requests
 
@@ -76,13 +77,13 @@ def surveys():
         )
 
         # if alternates model, return this info from file
-        class_uri = 'http://pid.geoscience.gov.au/def/ont/gapd#Survey'
+        class_uri = 'http://purl.org/linked-data/registry#Register'
 
         if view == 'alternates':
             del views_mimetypes['renderer']
             return routes_functions.render_alternates_view(
                 class_uri,
-                urllib.quote_plus(class_uri),
+                urllib.parse.quote_plus(class_uri),
                 None,
                 None,
                 views_mimetypes,
