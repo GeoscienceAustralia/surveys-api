@@ -10,3 +10,14 @@
     * create one vocab term URI instead of text (vessle: aeroplane, ship etc)
 
 * add default format to classes_view_formats, per view
+
+
+Entity
+
+* model Entity in GAPD
+* consume the API XML for one Entity as per Survey
+    * back-deliver Entity XMl as one view
+    * deliver SOSA as an RDF view
+    * deliver PROV as an RDF & HTML view
+* consume list of Entities, as per Surveys in register.py
+*

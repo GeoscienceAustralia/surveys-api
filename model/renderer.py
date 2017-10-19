@@ -5,10 +5,9 @@ class Renderer:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def __init__(self, uri, endpoints):
+    def __init__(self, id):
         """Every thing to be rendered must at least have a graph (its data) and a URI (its ID)"""
-        self.uri = uri
-        self.endpoints = endpoints
+        pass
 
     @abstractmethod
     def render(self, view, mimetype):

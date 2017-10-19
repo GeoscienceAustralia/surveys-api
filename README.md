@@ -3,6 +3,18 @@ A Linked Data API for GA's geophysics Survey records.
 
 This is a Python Flask HTTP API that provides access to metadata about Surveys stored in GA's corporate database known as ARGUS. Surveys are data collection activities undertaken by various vehicles (usually ships and aeroplanes). The data collected is of a range of types including magnetics, radiometrics and LiDAR. The data are stored at the National Computational Infrastructure (NCI) (http://www.ngi.org.au) in netCDF format and are catalogued in GA's corporate data catalogue eCat (http://ecat.ga.gov.au/geonetwork/). The data stored at the NCI and their catalogue entries contain links back to these Surveys. 
 
+## License
+This repository is licensed under Creative Commons 4.0 International. See the [LICENSE deed](LICENSE) in this repository for details.
+
+
+## Contacts
+Author:
+**Nicholas Car**  
+*Data Architect*  
+Geoscience Australia  
+<nicholas.car@ga.gov.au>  
+<http://orcid.org/0000-0002-8742-7730>
+
 
 ## Modelling
 This Linked Data API outputs objects - Surveys and Registers of Surveys (collections) according to a variety of 'views' (models) and in a variety of formats. There is a native 'GA Survey' metadata model (an [OWL ontology](https://en.wikipedia.org/wiki/Web_Ontology_Language)) that we have made to cater for all the metadata we need to represent. The Linked Data API serves this model, in a variety of formats, by default with HTML being the default format.
@@ -87,18 +99,13 @@ The Surveys API delivers a *gapd* and a *prov* model view for each Survey. The *
 The *wasGeneratedBy*/*generated* relationships between Surveys and Geophysics datasets are not recorded in the database that feeds this API. That relationship information is stored in GA's corporated data catalogue, [eCat](http://ecat.ga.gov.au/geonetwork/) that also contains all the Geophysics Dataset metadata.
 
 
-## About this code repository
-This code repository is developed and maintained by [Geoscience Australia](http://www.ga.gov.au) (GA). It is licensed using Creative Commons 4.0 International (see LICENSE file). 
+## Catalog Location & Identification
+This repo is catalogued in Geoscience Australia’s enterprise catalogue eCat. Its persistent URI identifier, which links directly to it, is <http://pid.geoscience.gov.au/dataset/ga/110081>.
+
+It also has a DOI: [10.4225/25/59e43600ab78f](http://dx.doi.org/10.4225/25/59e43600ab78f).
 
 
-### Authors and Contact
-**Nicholas Car**  
-Data Architect  
-Geoscience Australia  
-<nicholas.car@ga.gov.au>  
-<http://orcid.org/0000-0002-8742-7730> 
-  
-**Alex Ip**  
-Geoscience Australia  
-<alex.ip@ga.gov.au>  
-<http://orcid.org/0000-0001-8937-8904>  
+## Citing this software
+If you wish to cite this repo as you would a dataset, please do so like this:
+
+Car, N.J. (2017) ncskos code repository. Git software repository containing Python code. [DOI:10.4225/25/59e43600ab78f](http://dx.doi.org/10.4225/25/59e43600ab78f)

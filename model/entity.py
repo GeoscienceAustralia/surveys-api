@@ -23,6 +23,7 @@ class EntityRenderer:
         self.entity_id = entity_id
         self.entity_name = None
 
+        self._populate_from_oracle_api(entity_id)
 
     def render(self, view, mimetype):
         if self.survey_name is None:
