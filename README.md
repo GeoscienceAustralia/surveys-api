@@ -108,4 +108,4 @@ It also has a DOI: [10.4225/25/59e43600ab78f](http://dx.doi.org/10.4225/25/59e43
 ## Citing this software
 If you wish to cite this repo as you would a dataset, please do so like this:
 
-Car, N.J. (2017) ncskos code repository. Git software repository containing Python code. [DOI:10.4225/25/59e43600ab78f](http://dx.doi.org/10.4225/25/59e43600ab78f)
+Car, N.J. (2017) Surveys Linked Data API. Git software repository containing Python code. [DOI:10.4225/25/59e43600ab78f](http://dx.doi.org/10.4225/25/59e43600ab78f)
