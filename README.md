@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.4225/25/59e43600ab78f.svg)](https://doi.org/10.4225/25/59e43600ab78f)
+
 # Surveys Linked Data API
 A Linked Data API for GA's geophysics Survey records.
 
@@ -8,7 +10,7 @@ This repository is licensed under Creative Commons 4.0 International. See the [L
 
 
 ## Contacts
-Author:
+Lead Developer:  
 **Nicholas Car**  
 *Data Architect*  
 Geoscience Australia  
@@ -100,7 +102,7 @@ The *wasGeneratedBy*/*generated* relationships between Surveys and Geophysics da
 
 
 ## Catalog Location & Identification
-This repo is catalogued in Geoscience Australia’s enterprise catalogue eCat. Its persistent URI identifier, which links directly to it, is <http://pid.geoscience.gov.au/dataset/ga/110081>.
+This repo is catalogued in Geoscience Australia’s enterprise catalogue eCat. Its identifier, which is a persistent [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier) and which links directly to it, is <http://pid.geoscience.gov.au/dataset/ga/110081>.
 
 It also has a DOI: [10.4225/25/59e43600ab78f](http://dx.doi.org/10.4225/25/59e43600ab78f).
 
