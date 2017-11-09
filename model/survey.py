@@ -172,37 +172,68 @@ class SurveyRenderer:
         # turn the XML doc into a Python object
         root = objectify.fromstring(xml)
 
-        self.survey_name = root.ROW.SURVEYNAME if root.ROW.SURVEYNAME != '' else None
-        self.state = root.ROW.STATE if root.ROW.STATE != '' else None
-        self.operator = root.ROW.OPERATOR if root.ROW.OPERATOR != '' else None
-        self.contractor = root.ROW.CONTRACTOR if root.ROW.CONTRACTOR != '' else None
-        self.processor = root.ROW.PROCESSOR if root.ROW.PROCESSOR != '' else None
-        self.survey_type = root.ROW.SURVEY_TYPE if root.ROW.SURVEY_TYPE != '' else None
-        self.data_types = root.ROW.DATATYPES if root.ROW.DATATYPES != '' else None
-        self.vessel = root.ROW.VESSEL if root.ROW.VESSEL != '' else None
-        self.vessel_type = root.ROW.VESSEL_TYPE if root.ROW.VESSEL_TYPE != '' else None
-        self.release_date = datetime.strptime(root.ROW.RELEASEDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.RELEASEDATE != '' else None
-        self.onshore_offshore = root.ROW.ONSHORE_OFFSHORE if root.ROW.ONSHORE_OFFSHORE != '' else None
-        self.start_date = datetime.strptime(root.ROW.STARTDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.STARTDATE != '' else None
-        self.end_date = datetime.strptime(root.ROW.ENDDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.ENDDATE != '' else None
-        self.w_long = root.ROW.WLONG if root.ROW.WLONG != '' else None
-        self.e_long = root.ROW.ELONG if root.ROW.ELONG != '' else None
-        self.s_lat = root.ROW.SLAT if root.ROW.SLAT != '' else None
-        self.n_lat = root.ROW.NLAT if root.ROW.NLAT != '' else None
-        self.line_km = root.ROW.LINE_KM if root.ROW.LINE_KM != '' else None
-        self.total_km = root.ROW.TOTAL_KM if root.ROW.TOTAL_KM != '' else None
-        self.line_spacing = root.ROW.LINE_SPACING if root.ROW.LINE_SPACING != '' else None
-        self.line_direction = root.ROW.LINE_DIRECTION if root.ROW.LINE_DIRECTION != '' else None
-        self.tie_spacing = root.ROW.TIE_SPACING if root.ROW.TIE_SPACING != '' else None
-        self.square_km = root.ROW.SQUARE_KM if root.ROW.SQUARE_KM != '' else None
-        self.crystal_volume = root.ROW.CRYSTAL_VOLUME if root.ROW.CRYSTAL_VOLUME != '' else None
-        self.up_crystal_volume = root.ROW.UP_CRYSTAL_VOLUME if root.ROW.UP_CRYSTAL_VOLUME != '' else None
-        self.digital_data = root.ROW.DIGITAL_DATA if root.ROW.DIGITAL_DATA != '' else None
-        self.geodetic_datum = root.ROW.GEODETIC_DATUM if root.ROW.GEODETIC_DATUM != '' else None
-        self.asl = root.ROW.ASL if root.ROW.ASL != '' else None
-        self.agl = root.ROW.AGL if root.ROW.AGL != '' else None
-        self.mag_instrument = root.ROW.MAG_INSTRUMENT if root.ROW.MAG_INSTRUMENT != '' else None
-        self.rad_instrument = root.ROW.RAD_INSTRUMENT if root.ROW.RAD_INSTRUMENT != '' else None
+        if hasattr(root.ROW, 'SURVEYNAME'):
+            self.survey_name = root.ROW.SURVEYNAME
+        if hasattr(root.ROW, 'STATE'):
+            self.state = root.ROW.STATE
+        if hasattr(root.ROW, 'OPERATOR'):
+            self.operator = root.ROW.OPERATOR
+        if hasattr(root.ROW, 'CONTRACTOR'):
+            self.contractor = root.ROW.CONTRACTOR
+        if hasattr(root.ROW, 'PROCESSOR'):
+            self.processor = root.ROW.PROCESSOR
+        if hasattr(root.ROW, 'SURVEY_TYPE'):
+            self.survey_type = root.ROW.SURVEY_TYPE
+        if hasattr(root.ROW, 'DATATYPES'):
+            self.data_types = root.ROW.DATATYPES
+        if hasattr(root.ROW, 'VESSEL'):
+            self.vessel = root.ROW.VESSEL
+        if hasattr(root.ROW, 'VESSEL_TYPE'):
+            self.vessel_type = root.ROW.VESSEL_TYPE
+        if hasattr(root.ROW, 'RELEASEDATE'):
+            self.release_date = datetime.strptime(root.ROW.RELEASEDATE.text, "%Y-%m-%dT%H:%M:%S")
+        if hasattr(root.ROW, 'ONSHORE_OFFSHORE'):
+            self.onshore_offshore = root.ROW.ONSHORE_OFFSHORE
+        if hasattr(root.ROW, 'STARTDATE'):
+            self.start_date = datetime.strptime(root.ROW.STARTDATE.text, "%Y-%m-%dT%H:%M:%S")
+        if hasattr(root.ROW, 'ENDDATE'):
+            self.end_date = datetime.strptime(root.ROW.ENDDATE.text, "%Y-%m-%dT%H:%M:%S")
+        if hasattr(root.ROW, 'WLONG'):
+            self.w_long = root.ROW.WLONG
+        if hasattr(root.ROW, 'ELONG'):
+            self.e_long = root.ROW.ELONG
+        if hasattr(root.ROW, 'SLAT'):
+            self.s_lat = root.ROW.SLAT
+        if hasattr(root.ROW, 'NLAT'):
+            self.n_lat = root.ROW.NLAT
+        if hasattr(root.ROW, 'LINE_KM'):
+            self.line_km = root.ROW.LINE_KM
+        if hasattr(root.ROW, 'TOTAL_KM'):
+            self.total_km = root.ROW.TOTAL_KM
+        if hasattr(root.ROW, 'LINE_SPACING'):
+            self.line_spacing = root.ROW.LINE_SPACING
+        if hasattr(root.ROW, 'LINE_DIRECTION'):
+            self.line_direction = root.ROW.LINE_DIRECTION
+        if hasattr(root.ROW, 'TIE_SPACING'):
+            self.tie_spacing = root.ROW.TIE_SPACING
+        if hasattr(root.ROW, 'SQUARE_KM'):
+            self.square_km = root.ROW.SQUARE_KM
+        if hasattr(root.ROW, 'CRYSTAL_VOLUME'):
+            self.crystal_volume = root.ROW.CRYSTAL_VOLUME
+        if hasattr(root.ROW, 'UP_CRYSTAL_VOLUME'):
+            self.up_crystal_volume = root.ROW.UP_CRYSTAL_VOLUME
+        if hasattr(root.ROW, 'DIGITAL_DATA'):
+            self.digital_data = root.ROW.DIGITAL_DATA
+        if hasattr(root.ROW, 'GEODETIC_DATUM'):
+            self.geodetic_datum = root.ROW.GEODETIC_DATUM
+        if hasattr(root.ROW, 'ASL'):
+            self.asl = root.ROW.ASL
+        if hasattr(root.ROW, 'AGL'):
+            self.agl = root.ROW.AGL
+        if hasattr(root.ROW, 'MAG_INSTRUMENT'):
+            self.mag_instrument = root.ROW.MAG_INSTRUMENT
+        if hasattr(root.ROW, 'RAD_INSTRUMENT'):
+            self.rad_instrument = root.ROW.RAD_INSTRUMENT
 
     def _generate_survey_gml(self):
         if self.z is not None:
@@ -620,6 +651,7 @@ class SurveyRenderer:
 
 class ParameterError(ValueError):
     pass
+
 
 if __name__ == '__main__':
     import routes.model_classes_functions

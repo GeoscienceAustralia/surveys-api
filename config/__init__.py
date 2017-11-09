@@ -26,4 +26,3 @@ XML_API = {
     }
 }
 
-print(XML_API['SURVEYS']['SURVEY_REGISTER'])
