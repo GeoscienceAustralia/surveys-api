@@ -5,10 +5,10 @@ import os
 from flask import Blueprint, Response, request, render_template, send_from_directory
 from lxml import etree
 from lxml.builder import ElementMaker
-from ldapi.ldapi import LDAPI, LdapiParameterError
-from routes import routes_functions
+from _ldapi.ldapi import LDAPI, LdapiParameterError
+from controller import routes_functions
 
-pages = Blueprint('routes', __name__)
+pages = Blueprint('controller', __name__)
 
 
 @pages.route('/favicon.ico')
@@ -48,7 +48,7 @@ def index():
     except LdapiParameterError as e:
         return routes_functions.client_error_Response(e)
 
-    # select view and mimetype
+    # select controller and mimetype
 
     if view != 'getcapabilities':
         if mimetype == 'text/html':
@@ -57,20 +57,20 @@ def index():
             )
         else:
             return Response(
-                'This view of the API\'s root only has an HTML representation',
+                'This controller of the API\'s root only has an HTML representation',
                 status=400,
                 mimetype='text/plain')
     elif view == 'getcapabilities':
         # move GetCapabilities response formulation to a Renderer class
-        # only a single mimetype for this view
+        # only a single mimetype for this controller
         em = ElementMaker(
-            namespace="http://fake.com/ldapi",
+            namespace="http://fake.com/_ldapi",
             nsmap={
-                'ldapi': "http://fake.com/ldapi"
+                '_ldapi': "http://fake.com/_ldapi"
              }
         )
         onl = ElementMaker(
-            namespace="http://fake.com/ldapi",
+            namespace="http://fake.com/_ldapi",
             nsmap={
                 'xlink': "http://www.w3.org/1999/xlink",
             }

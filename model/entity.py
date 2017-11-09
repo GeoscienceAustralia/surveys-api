@@ -3,9 +3,9 @@ from lxml import objectify
 from rdflib import Graph, URIRef, RDF, RDFS, XSD, Namespace, Literal, BNode
 import requests
 from datetime import datetime
-from ldapi.ldapi import LDAPI
+from _ldapi.ldapi import LDAPI
 from flask import Response, render_template, redirect
-import config
+import _config
 
 
 class EntityRenderer:
@@ -34,14 +34,14 @@ class EntityRenderer:
                 return self.export_html(model_view=view)
             else:
                 return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
-        elif view == 'argus':  # XML only for this view
-            return redirect(config.XML_API_URL_SURVEY.format(self.survey_id), code=303)
+        elif view == 'argus':  # XML only for this controller
+            return redirect(_config.XML_API_URL_SURVEY.format(self.survey_id), code=303)
         elif view == 'prov':
             if mimetype == 'text/html':
                 return self.export_html(model_view=view)
             else:
                 return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
-        elif view == 'sosa':  # RDF only for this view
+        elif view == 'sosa':  # RDF only for this controller
             return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
 
     def validate_xml(self, xml):
@@ -61,7 +61,7 @@ class EntityRenderer:
         # internal URI
         # os.environ['NO_PROXY'] = 'ga.gov.au'
         # call API
-        r = requests.get(config.XML_API_URL_SURVEY.format(survey_id))
+        r = requests.get(_config.XML_API_URL_SURVEY.format(survey_id))
         # deal with missing XML declaration
         if "No data" in r.text:
             raise ParameterError('No Data')
@@ -136,7 +136,7 @@ class EntityRenderer:
         Exports this instance in RDF, according to a given model from the list of supported models,
         in a given rdflib RDF mimetype
 
-        :param model_view: string of one of the model view names available for Sample objects ['igsn', 'dc', '',
+        :param model_view: string of one of the model controller names available for Sample objects ['igsn', 'dc', '',
             'default']
         :param rdf_mime: string of one of the rdflib serlialization mimetype ['n3', 'nquads', 'nt', 'pretty-xml', 'trig',
             'trix', 'turtle', 'xml'], from http://rdflib3.readthedocs.io/en/latest/plugin_serializers.html
@@ -153,7 +153,7 @@ class EntityRenderer:
         # define GA
         ga = URIRef(SurveyRenderer.URI_GA)
 
-        # select model view
+        # select model controller
         if model_view == 'gapd' or model_view == 'prov':
             PROV = Namespace('http://www.w3.org/ns/prov#')
             g.bind('prov', PROV)
@@ -320,7 +320,7 @@ class EntityRenderer:
         """
         Exports this instance in HTML, according to a given model from the list of supported models.
 
-        :param model_view: string of one of the model view names available for survey objects
+        :param model_view: string of one of the model controller names available for survey objects
         :return: HTML string
         """
         if model_view == 'gapd':
@@ -380,16 +380,16 @@ class ParameterError(ValueError):
     pass
 
 if __name__ == '__main__':
-    import routes.model_classes_functions
+    import controller.model_classes_functions
     # get the valid views and mimetypes for a Survey
-    survey_views_mimetypes = routes.model_classes_functions.get_classes_views_mimetypes()\
+    survey_views_mimetypes = controller.model_classes_functions.get_classes_views_mimetypes()\
         .get('http://pid.geoscience.gov.au/def/ont/gapd#Survey')
-    # get my required view & mimetype
+    # get my required controller & mimetype
     v, f = LDAPI.get_valid_view_and_mimetype(
         None,
         None,
         survey_views_mimetypes
     )
-    import config
+    import _config
     s = EntityRenderer(921)
     print(s.render(v, f))

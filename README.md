@@ -35,7 +35,7 @@ Regarding Surveys, we are most interested in describing them (Survey metadata), 
 
 PROV-O gives us three basic classes which Everything falls in to. Figure 1 shows those classes and their basic (unqualified) relationships.
  
-![Figure 1](static/img/PROV-O-Basic.png)  
+![Figure 1](view/static/img/PROV-O-Basic.png)  
 Figure 1: The basic PROV-O classes and their relationships 
 
 #### Survey Modelling
@@ -43,12 +43,12 @@ We model a Survey as a temporal event which, according to PROV-O, means it is a 
 
 In addition to just modelling a Survey class, we model sub-classes of Survey being a Public Survey which is a Survey that GA delivers publicly. Likely a Public Survey is a Survey with some metadata removed which aligns with the GAPD where we have classes like Dataset and then Public Dataset, see Figure 2. 
 
-![Figure 2](static/img/Survey-Geophysics-Dataset-Type.png)  
+![Figure 2](view/static/img/Survey-Geophysics-Dataset-Type.png)  
 Figure 2: The GAPD modelling of a Geophysics Dataset 
 
 Subclasses of Public Survey are then Airborne Survey, Shipborne Survey and possibly. This is shown in Figure 3.
 
-![Figure 3](static/img/Survey-Type.png)  
+![Figure 3](view/static/img/Survey-Type.png)  
 Figure 3: The Survey class and subclasses and it's relationship to PROV-O 
 
 Airborne-only properties, such as height above ground, will only be legal for Airborne Survey and likewise for other sorts.
@@ -64,19 +64,19 @@ with the inverse being:
 
 This modelling is shown in Figure 4.
 
-![Figure 4](static/img/Survey-Geophysics-Dataset.png)  
+![Figure 4](view/static/img/Survey-Geophysics-Dataset.png)  
 Figure 4: A survey is a subclass of PROV-O's *Activity*
 
 #### Survey <--> Geophysics Dataset with classification
 Geophysics Datasets are categorised by using [SKOS Concepts](https://www.w3.org/TR/skos-reference/#concepts) which are akin to [ISO19115](http://www.iso.org/iso/iso_catalogue/catalogue_ics/catalogue_detail_ics.htm?csnumber=53798)'s keywords. Aditionally, Geophysics Datasets may belong to Themed Collections. This modelling is shown in Figure 6.
 
-![Figure 6](static/img/Survey-Dataset-Classification.png)  
+![Figure 6](view/static/img/Survey-Dataset-Classification.png)  
 Figure 6: Geophysics Dataset Classification and Survey
 
 ##### Data from multiple Surveys
 We have datasets that are the results of multiple Surveys. We model this as per Figure 7 where there is an assumed aggregation activity, detaisl fo which may be unknonw, that mush have taken place to take some of the outputs from multiple Surveys and process them into a Geophysics Dataset.
 
-![Figure 7](static/img/Survey-Dataset-multi.png)  
+![Figure 7](view/static/img/Survey-Dataset-multi.png)  
 Figure 7: Geophysics Dataset Classification and Survey
 
 Since we may not know details of this assembling Activity, we don't need to record it, only assume it for modellign consistency. We may only record the Survey <--> Geophysics Dataset relationship. Unlike a 1:1 Survey <--> Geophysics Dataset relationship, we have to say a Geophysics Dataset that results from multiple Surveys *wasInfoluencedBy* those surveys, not *wasGeneratedBy* as only a single PROV *Activity* could ever generate a particular Dataset (PROV *Entity*)
@@ -84,15 +84,15 @@ Since we may not know details of this assembling Activity, we don't need to reco
 ##### Surveys and Agents
 In order to link Surveys to relevant people or groups, which in PROV we model as *Agents*, we use the *Activity* <--> *Agent* relationship of *wasAssociatedWith*. Figure 8 shows this with specific examples.
 
-![Figure 8](static/img/Survey-Agent.png)  
+![Figure 8](view/static/img/Survey-Agent.png)  
 Figure 8: Surveys and Agents
 
 In order to add more information to the *Activity*/*Agent* relationship, we use the PROV standard approach of qualifying it by indicating an *Association* linking a Survey to a particular *Agent* with a particular *Role*, relevant only for that relationship (*Agents* can have multiple different roles with respect to different Associations to different or even the same dataset(s)). Figure 9 shows this construct in basic PROV terms with Figure 10 showing a specific example of a Survey with multiple Associations.
  
-![Figure 9](static/img/Survey-Agent-Qualified-PROV.png)  
+![Figure 9](view/static/img/Survey-Agent-Qualified-PROV.png)  
 Figure 9: PROV's qualified *Activity*/*Agent* relationship
 
-![Figure 10](static/img/Survey-Agent-Qualified-example.png)  
+![Figure 10](view/static/img/Survey-Agent-Qualified-example.png)  
 Figure 10: A Survey linked to two *Agents* via three *Associations* with Company X being both the Contractor and the Processor. 
 
 ## Linked Data model expression

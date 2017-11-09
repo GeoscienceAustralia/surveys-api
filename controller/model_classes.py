@@ -2,12 +2,12 @@
 This file contains all the HTTP routes for classes from the IGSN model, such as Samples and the Sample Register
 """
 from flask import Blueprint, render_template, request, Response
-from routes import routes_functions
-from ldapi.ldapi import LDAPI, LdapiParameterError
-from routes import model_classes_functions
+from controller import routes_functions
+from _ldapi.ldapi import LDAPI, LdapiParameterError
+from controller import model_classes_functions
 import urllib
 from urllib.parse import urlparse
-import config
+import _config
 import requests
 
 model_classes = Blueprint('model_classes', __name__)
@@ -106,19 +106,19 @@ def surveys():
             links = []
             links.append('<http://www.w3.org/ns/ldp#Resource>; rel="type"')
             links.append('<http://www.w3.org/ns/ldp#Page>; rel="type"')  # signalling that this is, in fact, a resource described in pages
-            links.append('<{}?per_page={}>; rel="first"'.format(config.BASE_URI_SAMPLE, per_page))
+            links.append('<{}?per_page={}>; rel="first"'.format(_config.BASE_URI_SAMPLE, per_page))
 
             # if this isn't the first page, add a link to "prev"
             if page != 1:
                 links.append('<{}?per_page={}&page={}>; rel="prev"'.format(
-                    config.BASE_URI_SAMPLE,
+                    _config.BASE_URI_SAMPLE,
                     per_page,
                     (page - 1)
                 ))
 
             # add a link to "next" and "last"
             try:
-                # r = requests.get(config.XML_API_URL_TOTAL_COUNT)
+                # r = requests.get(_config.XML_API_URL_TOTAL_COUNT)
                 # no_of_samples = int(r.content.split('<RECORD_COUNT>')[1].split('</RECORD_COUNT>')[0])
                 no_of_samples = 9200  # TODO: implement a survey count Oracle XML API
                 last_page_no = int(round(no_of_samples / per_page, 0)) + 1  # same as math.ceil()
@@ -134,13 +134,13 @@ def surveys():
 
                 # add a link to "next"
                 if page != last_page_no:
-                    links.append('<{}?per_page={}&page={}>; rel="next"'.format(config.BASE_URI_SAMPLE, per_page, (page + 1)))
+                    links.append('<{}?per_page={}&page={}>; rel="next"'.format(_config.BASE_URI_SAMPLE, per_page, (page + 1)))
 
                 # add a link to "last"
-                links.append('<{}?per_page={}&page={}>; rel="last"'.format(config.BASE_URI_SAMPLE, per_page, last_page_no))
+                links.append('<{}?per_page={}&page={}>; rel="last"'.format(_config.BASE_URI_SAMPLE, per_page, last_page_no))
             except:
                 # if there's some error in getting the no of samples, add the "next" link but not the "last" link
-                links.append('<{}?per_page={}&page={}>; rel="next"'.format(config.BASE_URI_SAMPLE, per_page, (page + 1)))
+                links.append('<{}?per_page={}&page={}>; rel="next"'.format(_config.BASE_URI_SAMPLE, per_page, (page + 1)))
 
             headers = {
                 'Link': ', '.join(links)
