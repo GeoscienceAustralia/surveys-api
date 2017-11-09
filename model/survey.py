@@ -68,6 +68,9 @@ class SurveyRenderer:
             self.w_long, self.n_lat
         )
 
+        self.centroid_lat = (self.n_lat + self.s_lat) / 2
+        self.centroid_lon = (self.e_long + self.w_long) / 2
+
         # clean-up required vars
         if self.end_date is None:
             self.end_date = datetime(1900, 1, 1)
@@ -645,7 +648,14 @@ class SurveyRenderer:
             survey_id=self.survey_id,
             end_date=self.end_date,
             survey_type=self.survey_type,
-            date_now=datetime.now().strftime('%Y-%m-%d')
+            date_now=datetime.now().strftime('%Y-%m-%d'),
+            centroid_lat=self.centroid_lat,
+            centroid_lon=self.centroid_lon,
+            n_lat=self.n_lat,
+            s_lat=self.s_lat,
+            w_long=self.w_long,
+            e_long=self.e_long,
+            gm_key=_config.GOOGLE_MAPS_API_KEY
         )
 
 

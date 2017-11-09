@@ -1,17 +1,17 @@
     <h2>GAPD view</h2>
     <p>These properties are those listed in the <a href="http://pid.geoscience.gov.au/def/ont/gapd">GAPD Model</a> of a Survey.</p>
-    <table class="lined">
+    <table class="pretty">
         <tr><th>Property</th><th>Value</th></tr>
-        <tr><th>ID</th><td>{{ survey_id }}</td></tr>
-        <tr><th>Name</th><td>{{ survey_name }}</td></tr>
-        <tr><th>State</th><td>{{ state }}</td></tr>
+        <tr><td>ID</td><td>{{ survey_id }}</td></tr>
+        <tr><td>Name</td><td>{{ survey_name }}</td></tr>
+        <tr><td>State</td><td>{{ state }}</td></tr>
         <tr>
-            <th>
+            <td>
                 Agents:<br />
             &nbsp;&nbsp;&nbsp;&nbsp;Contractor<br />
             &nbsp;&nbsp;&nbsp;&nbsp;Operator<br />
             &nbsp;&nbsp;&nbsp;&nbsp;Processor<br />
-            </th>
+            </td>
             <td>
                 <br />
                 {{ contractor }}<br />
@@ -19,53 +19,53 @@
                 {{ processor }}<br />
             </td>
         </tr>
-        <tr><th>survey_type</th><td>{{ survey_type }}</td></tr>
-        <tr><th>data_types</th><td>{{ data_types }}</td></tr>
+        <tr><td>survey_type</td><td>{{ survey_type }}</td></tr>
+        <tr><td>data_types</td><td>{{ data_types }}</td></tr>
         <tr>
-            <th>
+            <td>
                 Vessel:<br />
             &nbsp;&nbsp;&nbsp;&nbsp;Type<br />
             &nbsp;&nbsp;&nbsp;&nbsp;Name
-            </th>
+            </td>
             <td>
                 <br />
                 {{ vessel_type }}<br />
                 {{ vessel }}
             </td>
         </tr>
-        <tr><th>release_date</th><td>{{ release_date }}</td></tr>
-        <tr><th>onshore_offshore</th><td>{{ onshore_offshore }}</td></tr>
+        <tr><td>release_date</td><td>{{ release_date }}</td></tr>
+        <tr><td>onshore_offshore</td><td>{{ onshore_offshore }}</td></tr>
         <tr>
-            <th>
+            <td>
                 Dates:<br />
             &nbsp;&nbsp;&nbsp;&nbsp;Start<br />
             &nbsp;&nbsp;&nbsp;&nbsp;End
-            </th>
+            </td>
             <td>
                 <br />
                 {{ start_date }}<br />
                 {{ end_date }}
             </td>
         </tr>
-        <tr><th>Bounding Box</th><td>{{ wkt_polygon }}</td></tr>
+        <tr><td>Bounding Box</td><td>{{ wkt_polygon }}</td></tr>
 
-        <tr><th>crystal_volume</th><td>{{ crystal_volume }}</td></tr>
-        <tr><th>up_crystal_volume</th><td>{{ up_crystal_volume }}</td></tr>
-        <tr><th>digital_data</th><td>{{ digital_data }}</td></tr>
-        <tr><th>geodetic_datum</th><td>{{ geodetic_datum }}</td></tr>
-        <tr><th>asl</th><td>{{ asl }}</td></tr>
-        <tr><th>agl</th><td>{{ agl }}</td></tr>
+        <tr><td>crystal_volume</td><td>{{ crystal_volume }}</td></tr>
+        <tr><td>up_crystal_volume</td><td>{{ up_crystal_volume }}</td></tr>
+        <tr><td>digital_data</td><td>{{ digital_data }}</td></tr>
+        <tr><td>geodetic_datum</td><td>{{ geodetic_datum }}</td></tr>
+        <tr><td>asl</td><td>{{ asl }}</td></tr>
+        <tr><td>agl</td><td>{{ agl }}</td></tr>
         <tr>
-            <th>
+            <td>
                 Instruments:<br />
                 &nbsp;&nbsp;&nbsp;&nbsp;Magnetics<br />
                 &nbsp;&nbsp;&nbsp;&nbsp;Radiation<br />
-            </th>
+            </td>
             <td>
                 <br />
                 {{ mag_instrument }}<br />
                 {{ rad_instrument }}<br />
             </td>
         </tr>
-        <tr><th>Has Provenance</th><td><a href="{{ request.base_url }}?_view=prov">{{ request.base_url }}?_view=prov</a></td></tr>
+        <tr><td>Has Provenance</td><td><a href="{{ request.base_url }}?_view=prov">{{ request.base_url }}?_view=prov</a></td></tr>
     </table>
