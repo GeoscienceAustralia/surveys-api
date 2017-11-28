@@ -9,7 +9,7 @@
         <li>this system's <a href="http://github.com/geoscienceaustralia/surveys-api">git code repository</a></li>
         <li>the Epimorphics <a href="https://github.com/UKGovLD/linked-data-api">Linked Data API</a> that this API is derived from</li>
         <li>this service's <a href="http://pid.geoscience.gov.au/service/" style="text-decoration: line-through;">instance entry, as a web service</a> (not implemented yet) in the main Geoscience Australia catalogue, <a href="http://ecat.ga.gov.au/geonetwork/">eCat</a></li>
-        <li>an <a href="http://www.opengeospatial.org/">OGC</a>, <a href="http://www.opengeospatial.org/standards/wms">WMS web service standard</a> <em>GetCapabilities</em>-like XML descriptor: <a href="{{ url_for('view.index') }}?_view=getcapabilities&_format=text/xml">{{ url_for('view.index') }}?_view=getcapabilities&_format=text/xml</a></li>
+        <li>an <a href="http://www.opengeospatial.org/">OGC</a>, <a href="http://www.opengeospatial.org/standards/wms">WMS web service standard</a> <em>GetCapabilities</em>-like XML descriptor: <a href="{{ url_for('controller.index') }}?_view=getcapabilities&_format=text/xml">{{ url_for('controller.index') }}?_view=getcapabilities&_format=text/xml</a></li>
     </ul>
     <h2>Surveys</h2>
     <p>The survey Register, linked to above right, is the listing of all Surveys. It can be accessed directly using the URI:</p>

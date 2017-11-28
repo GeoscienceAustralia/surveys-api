@@ -10,7 +10,7 @@ import _config
 
 class RegisterRenderer(Renderer):
     def __init__(self, request, uri, endpoints, page, per_page, last_page_no):
-        Renderer.__init__(self, uri, endpoints)
+        Renderer.__init__(self, uri)
 
         self.request = request
         self.uri = uri
