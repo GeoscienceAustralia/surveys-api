@@ -1,7 +1,7 @@
-[![DOI](https://zenodo.org/badge/DOI/10.4225/25/59e43600ab78f.svg)](https://doi.org/10.4225/25/59e43600ab78f)
-
 # Surveys Linked Data API
 A Linked Data API for GA's geophysics Survey records.
+
+[![DOI](https://zenodo.org/badge/DOI/10.4225/25/59e43600ab78f.svg)](https://doi.org/10.4225/25/59e43600ab78f)
 
 This is a Python Flask HTTP API that provides access to metadata about Surveys stored in GA's corporate database known as ARGUS. Surveys are data collection activities undertaken by various vehicles (usually ships and aeroplanes). The data collected is of a range of types including magnetics, radiometrics and LiDAR. The data are stored at the National Computational Infrastructure (NCI) (http://www.ngi.org.au) in netCDF format and are catalogued in GA's corporate data catalogue eCat (http://ecat.ga.gov.au/geonetwork/). The data stored at the NCI and their catalogue entries contain links back to these Surveys. 
 
