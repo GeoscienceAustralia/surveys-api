@@ -33,9 +33,9 @@ def survey(survey_id):
 
         # if alternates model, return this info from file
         if view == 'alternates':
-            class_uri = 'http://pid.geoscience.gov.au/def/ont/gapd#Survey'
+            class_uri = 'http://pid.geoscience.gov.au/def/ont/ga/pdm#Survey'
             class_uri_name = class_uri.split('#')[1]
-            instance_uri = 'http://pid.geoscience.gov.au/survey/' + survey_id
+            instance_uri = 'http://pid.geoscience.gov.au/survey/ga/' + survey_id
             del views_mimetypes['renderer']
             return routes_functions.render_alternates_view(
                 class_uri_name,
@@ -106,12 +106,12 @@ def surveys():
             links = []
             links.append('<http://www.w3.org/ns/ldp#Resource>; rel="type"')
             links.append('<http://www.w3.org/ns/ldp#Page>; rel="type"')  # signalling that this is, in fact, a resource described in pages
-            links.append('<{}?per_page={}>; rel="first"'.format(_config.BASE_URI_SAMPLE, per_page))
+            links.append('<{}?per_page={}>; rel="first"'.format(_config.BASE_URI_SURVEY, per_page))
 
             # if this isn't the first page, add a link to "prev"
             if page != 1:
                 links.append('<{}?per_page={}&page={}>; rel="prev"'.format(
-                    _config.BASE_URI_SAMPLE,
+                    _config.BASE_URI_SURVEY,
                     per_page,
                     (page - 1)
                 ))
@@ -134,13 +134,13 @@ def surveys():
 
                 # add a link to "next"
                 if page != last_page_no:
-                    links.append('<{}?per_page={}&page={}>; rel="next"'.format(_config.BASE_URI_SAMPLE, per_page, (page + 1)))
+                    links.append('<{}?per_page={}&page={}>; rel="next"'.format(_config.BASE_URI_SURVEY, per_page, (page + 1)))
 
                 # add a link to "last"
-                links.append('<{}?per_page={}&page={}>; rel="last"'.format(_config.BASE_URI_SAMPLE, per_page, last_page_no))
+                links.append('<{}?per_page={}&page={}>; rel="last"'.format(_config.BASE_URI_SURVEY, per_page, last_page_no))
             except:
                 # if there's some error in getting the no of samples, add the "next" link but not the "last" link
-                links.append('<{}?per_page={}&page={}>; rel="next"'.format(_config.BASE_URI_SAMPLE, per_page, (page + 1)))
+                links.append('<{}?per_page={}&page={}>; rel="next"'.format(_config.BASE_URI_SURVEY, per_page, (page + 1)))
 
             headers = {
                 'Link': ', '.join(links)

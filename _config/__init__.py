@@ -10,7 +10,7 @@ XML_API_URL_SURVEY_REGISTER = 'http://dbforms.ga.gov.au/www/argus.argus_api.Sear
                               '?pOrder=SURVEYID&pPageno={0}&pNoOfRecordsPerPage={1}'
 XML_API_URL_SURVEY = 'http://dbforms.ga.gov.au/www/argus.argus_api.survey?pSurveyNo={}'
 
-BASE_URI_SAMPLE = 'http://pid.geoscience.gov.au/survey/'
+BASE_URI_SURVEY = 'http://pid.geoscience.gov.au/survey/ga/'
 
 ADMIN_EMAIL = 'dataman@ga.gov.au'
 
@@ -26,7 +26,6 @@ XML_API = {
         'SURVEY': '',
         'SURVEY_REGISTER': 'http://dbforms.ga.gov.au/www/argus.argus_api.SearchSurveys'
                            '?pOrder=SURVEYID&pPageno={0}&pNoOfRecordsPerPage={1}'
-
     }
 }
 

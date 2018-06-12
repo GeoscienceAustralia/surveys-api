@@ -194,13 +194,13 @@ class SurveyRenderer:
         if hasattr(root.ROW, 'VESSEL_TYPE'):
             self.vessel_type = root.ROW.VESSEL_TYPE
         if hasattr(root.ROW, 'RELEASEDATE'):
-            self.release_date = datetime.strptime(root.ROW.RELEASEDATE.text, "%Y-%m-%dT%H:%M:%S")
+            self.release_date = datetime.strptime(root.ROW.RELEASEDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.RELEASEDATE.text is not None else None
         if hasattr(root.ROW, 'ONSHORE_OFFSHORE'):
             self.onshore_offshore = root.ROW.ONSHORE_OFFSHORE
         if hasattr(root.ROW, 'STARTDATE'):
-            self.start_date = datetime.strptime(root.ROW.STARTDATE.text, "%Y-%m-%dT%H:%M:%S")
+            self.start_date = datetime.strptime(root.ROW.STARTDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.STARTDATE.text is not None else None
         if hasattr(root.ROW, 'ENDDATE'):
-            self.end_date = datetime.strptime(root.ROW.ENDDATE.text, "%Y-%m-%dT%H:%M:%S")
+            self.end_date = datetime.strptime(root.ROW.ENDDATE.text, "%Y-%m-%dT%H:%M:%S") if root.ROW.ENDDATE.text is not None else None
         if hasattr(root.ROW, 'WLONG'):
             self.w_long = root.ROW.WLONG
         if hasattr(root.ROW, 'ELONG'):
@@ -269,7 +269,7 @@ class SurveyRenderer:
         g = Graph()
 
         # URI for this survey
-        base_uri = 'http://pid.geoscience.gov.au/survey/'
+        base_uri = 'http://pid.geoscience.gov.au/survey/ga/'
         this_survey = URIRef(base_uri + self.survey_id)
 
         # define GA
@@ -496,7 +496,7 @@ class SurveyRenderer:
                     label = row['label']
                 else:
                     label = 'Agent'
-                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", image: "/static/img/agent.png", shape: "image"},\n' % {
+                nodes += '\t\t\t\t{id: "%(node_id)s", label: "%(label)s", image: "/surveys/static/img/agent.png", shape: "image"},\n' % {
                     'node_id': row['s'],
                     'label': label
                 }

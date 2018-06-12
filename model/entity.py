@@ -147,7 +147,7 @@ class EntityRenderer:
         g = Graph()
 
         # URI for this survey
-        base_uri = 'http://pid.geoscience.gov.au/survey/'
+        base_uri = 'http://pid.geoscience.gov.au/survey/ga/'
         this_survey = URIRef(base_uri + self.survey_id)
 
         # define GA

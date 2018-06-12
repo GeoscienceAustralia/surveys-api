@@ -87,7 +87,7 @@ def index():
                     em.Keyword('RDF'),
                 ),
                 # TODO: parameterised namespaces not working yet
-                onl.OnlineResource(type="simple", href="http://pid.geoscience.gov.au/service/survey/"),
+                onl.OnlineResource(type="simple", href="http://pid.geoscience.gov.au/survey/ga/"),
                 em.ContactInformation(
                     em.ContactPersonPrimary(
                         em.contactPerson('Nicholas Car'),
@@ -121,7 +121,7 @@ def index():
                                 em.Get(
                                     onl.OnlineResource(
                                         type="simple",
-                                        href="http://pid.geoscience.gov.au/service/survey/" +
+                                        href="http://pid.geoscience.gov.au/survey/ga/" +
                                              "?_view=getcapabilities&_format=text/xml"
                                     ),
                                 )
@@ -138,7 +138,7 @@ def index():
                                 em.Get(
                                     onl.OnlineResource(
                                         type="simple",
-                                        href="http://pid.geoscience.gov.au/service/survey/{SURVEY_ID}"
+                                        href="http://pid.geoscience.gov.au/survey/ga/{SURVEY_ID}"
                                     ),
                                 )
                             )
@@ -154,7 +154,7 @@ def index():
                                 em.Get(
                                     onl.OnlineResource(
                                         type="simple",
-                                        href="http://pid.geoscience.gov.au/service/survey/"
+                                        href="http://pid.geoscience.gov.au/survey/ga/"
                                     ),
                                 )
                             )
