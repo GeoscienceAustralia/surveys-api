@@ -1,5 +1,5 @@
-    <h2>GAPD view</h2>
-    <p>These properties are those listed in the <a href="http://pid.geoscience.gov.au/def/ont/gapd">GAPD Model</a> of a Survey.</p>
+    <h2>GA PDM view</h2>
+    <p>These properties are those listed in GA's <a href="http://pid.geoscience.gov.au/def/ont/ga/pdm">Public Data Model</a> view of a Survey.</p>
     <table class="pretty">
         <tr><th>Property</th><th>Value</th></tr>
         <tr><td>ID</td><td>{{ survey_id }}</td></tr>
@@ -67,5 +67,5 @@
                 {{ rad_instrument }}<br />
             </td>
         </tr>
-        <tr><td>Has Provenance</td><td><a href="{{ request.base_url }}?_view=prov">{{ request.base_url }}?_view=prov</a></td></tr>
+        <tr><td>Has Provenance</td><td><a href="http://pid.geoscience.gov.au/survye/ga/{{ survey_id }}?_view=prov">{{ survey_id }}?_view=prov</a></td></tr>
     </table>
